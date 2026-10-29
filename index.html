@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es" data-theme="neo">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>BrainDeck</title>
+  <meta name="description" content="BrainDeck: herramientas para creativos y autodidactas + minijuegos.">
+  <meta name="theme-color" content="#dcf34b">
+  <link rel="icon" type="image/svg+xml" href="img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700&family=Pixelify+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+  <script>
+    // Aplica el estilo e idioma guardados antes de pintar (evita el parpadeo del tema por defecto)
+    try { const s = JSON.parse(localStorage.getItem('bd:settings') || '{}'); if (s.theme) document.documentElement.dataset.theme = s.theme; if (s.lang) document.documentElement.lang = s.lang; } catch {}
+  </script>
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <div class="stars"></div>
+    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>
+    <span class="doodle d1">✦</span><span class="doodle d2">♡</span><span class="doodle d3">✶</span>
+  </div>
+
+  <div class="shell">
+    <aside class="side">
+      <a class="brand" href="#/">
+        <img class="brand-logo" src="img/logo.svg" alt="" width="30" height="30">
+        <span>Brain<b>Deck</b></span>
+      </a>
+      <nav class="side-nav" id="sideNav"></nav>
+    </aside>
+
+    <main class="main">
+      <header class="top">
+        <a class="brand brand-mobile" href="#/"><img class="brand-logo" src="img/logo.svg" alt="" width="30" height="30"><span>Brain<b>Deck</b></span></a>
+        <div class="top-actions">
+          <button class="icon-btn" id="themeCycle" title="Cambiar estilo" aria-label="Cambiar estilo">◐</button>
+        </div>
+      </header>
+      <div id="view" class="view"></div>
+    </main>
+  </div>
+
+  <nav class="bottom-nav" id="bottomNav"></nav>
+  <div class="toasts" id="toasts"></div>
+
+  <script src="js/core.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/home.js"></script>
+  <script src="js/commission.js"></script>
+  <script src="js/watermark.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/study.js"></script>
+  <script src="js/savings.js"></script>
+  <script src="js/convert.js"></script>
+  <script src="js/pdfmerge.js"></script>
+  <script src="js/videodl.js"></script>
+  <script src="js/subtitles.js"></script>
+  <script src="js/creative.js"></script>
+  <script src="js/palette.js"></script>
+  <script src="js/gesture.js"></script>
+  <script src="js/challenge.js"></script>
+  <script src="js/speak.js"></script>
+  <script src="js/bgremove.js"></script>
+  <script src="js/pdftools.js"></script>
+  <script src="js/qr.js"></script>
+  <script src="js/games.js"></script>
+  <script src="js/findme.js"></script>
+</body>
+</html>
