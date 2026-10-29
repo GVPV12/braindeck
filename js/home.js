@@ -226,12 +226,26 @@
         </div>
         <div class="row" style="margin-top:14px"><button class="btn primary" id="sSave">${L('Guardar ajustes', 'Save settings')}</button><button class="btn ghost" id="sTest">${L('Probar IA', 'Test AI')}</button></div>
         <hr class="sep">
-        <h3>${L('Tus datos', 'Your data')}</h3>
-        <p class="muted small">${L('Todo se guarda en este navegador (localStorage). Exporta una copia para pasarla a otro dispositivo.', 'Everything is stored in this browser (localStorage). Export a copy to move it to another device.')}</p>
-        <div class="row">
-          <button class="btn ghost" id="sExport">${L('Exportar copia', 'Export backup')}</button>
-          <label class="btn ghost">${L('Importar copia', 'Import backup')}<input type="file" id="sImport" accept=".json" hidden></label>
-          <button class="btn ghost danger" id="sReset">${L('Borrar todo', 'Delete everything')}</button>
+        <h3>${L('Importar y exportar datos', 'Import & export data')}</h3>
+        <p class="muted small">${L('Todo se guarda solo en este navegador. Exporta una copia de seguridad o para pasarla a otro dispositivo o navegador, e impórtala allí. La API key nunca se exporta.',
+          'Everything is stored only in this browser. Export a backup, or to move it to another device or browser, and import it there. The API key is never exported.')}</p>
+        <div class="card stack">
+          <div class="row"><b style="flex:1">${L('¿Qué quieres exportar?', 'What do you want to export?')}</b>
+            <button class="btn ghost sm" data-gall="1">${L('Todo', 'All')}</button><button class="btn ghost sm" data-gall="0">${L('Nada', 'None')}</button></div>
+          <div class="data-groups" id="sGroups"></div>
+          <div class="row">
+            <button class="btn primary" id="sExport">⬇ ${L('Exportar copia', 'Export backup')}</button>
+            <label class="btn ghost">⬆ ${L('Importar copia', 'Import backup')}<input type="file" id="sImport" accept=".json,application/json" hidden></label>
+            <span class="spacer"></span>
+            <button class="btn ghost danger" id="sReset">${L('Borrar todo', 'Delete everything')}</button>
+          </div>
+        </div>
+        <div class="card stack hidden" id="sImpBox" style="margin-top:14px">
+          <b id="sImpTitle"></b>
+          <div class="data-groups" id="sImpGroups"></div>
+          <div class="field"><span>${L('¿Cómo importar?', 'How to import?')}</span><div id="sImpMode"></div>
+            <span class="muted small" id="sImpHelp"></span></div>
+          <div class="row"><button class="btn primary" id="sImpGo">${L('Importar seleccionados', 'Import selected')}</button><button class="btn ghost" id="sImpCancel">${L('Cancelar', 'Cancel')}</button></div>
         </div>
         <hr class="sep">
         <div class="row"><a class="btn ghost" href="https://grevaleart.com/" target="_blank" rel="noopener">${L('Mi portafolio', 'My portfolio')} ↗</a><a class="btn ghost" href="#/findme">${L('Estoy en', 'Find me on')} →</a></div>`;
@@ -269,20 +283,83 @@
         } catch (err) { st.textContent = '✕ ' + err.message; }
         b.disabled = false;
       };
-      $('#sExport', body).onclick = () => {
-        const data = {}; BD.store.keys().filter(k => k !== 'settings').forEach(k => data[k] = store.get(k));
-        const st = settings(); delete st.apiKey; data.settings = st;
-        download(new Blob([JSON.stringify(data)], { type: 'application/json' }), `braindeck-${BD.today()}.json`);
+      // ---------- importar / exportar por grupos ----------
+      // Cada grupo agrupa claves de almacenamiento (exactas o por prefijo "x:")
+      const GROUPS = [
+        ['notes', L('Notas de capturas', 'Screenshot notes'), ['notes', 'notes:']],
+        ['plans', L('Planes de estudio', 'Study plans'), ['plans', 'plan:']],
+        ['tests', L('Tests y repasos', 'Tests & reviews'), ['decks', 'progress', 'study:']],
+        ['retos', L('Retos de 30 días', '30-day challenges'), ['challenges', 'reto:']],
+        ['english', L('Coach de inglés', 'English coach'), ['speak:']],
+        ['creative', L('Ideas, frases, paletas y gesture', 'Ideas, sentences, palettes & gesture'), ['ideas:', 'unblock:', 'pal:', 'gest:']],
+        ['money', L('Ahorro y comisiones', 'Savings & commissions'), ['savings:', 'commission:']],
+        ['decisions', 'Decision Log', ['decisions']],
+        ['games', L('Minijuegos (récords y dibujos)', 'Mini games (records & drawings)'), ['games:']],
+        ['prefs', L('Preferencias de herramientas y orden del menú', 'Tool preferences & menu order'), ['wm:', 'conv:', 'vdl:', 'subs:', 'bg:', 'pdft:', 'qr:', 'layout', 'hero:', 'timer']],
+        ['settings', L('Ajustes (idioma, estilo, autor; sin API key)', 'Settings (language, style, author; no API key)'), ['settings']],
+      ];
+      const groupOf = k => (GROUPS.find(([, , ks]) => ks.some(p => p.endsWith(':') ? k.startsWith(p) : k === p)) || ['other'])[0];
+      // "12 elementos" para listas; si no, nº de claves
+      const sizeOf = obj => Object.values(obj).reduce((a, v) => a + (Array.isArray(v) ? v.length : Array.isArray(v?.results) ? v.results.length + (v.mistakes || []).length : 0), 0);
+      const pick = (src, gid) => Object.fromEntries(Object.entries(src).filter(([k]) => groupOf(k) === gid));
+      const localData = () => { const d = {}; BD.store.keys().forEach(k => d[k] = store.get(k)); if (d.settings) { d.settings = { ...d.settings }; delete d.settings.apiKey; } return d; };
+      const groupList = (el, data, checked) => {
+        const present = [...GROUPS, ['other', L('Otros', 'Other'), []]].map(([id, label]) => [id, label, pick(data, id)]).filter(([, , d]) => Object.keys(d).length);
+        el.innerHTML = present.length ? present.map(([id, label, d]) => { const n = sizeOf(d); return `
+          <label class="check data-group"><input type="checkbox" data-g="${id}" ${checked ? 'checked' : ''}> <span>${esc(label)}</span>
+          <span class="muted small">${n ? n + ' ' + L('elementos', 'items') : Object.keys(d).length + ' ' + L('ajustes', 'settings')}</span></label>`; }).join('')
+          : `<p class="muted small">${L('Aún no hay datos guardados.', 'No saved data yet.')}</p>`;
       };
+      const chosen = el => $$('[data-g]', el).filter(c => c.checked).map(c => c.dataset.g);
+      groupList($('#sGroups', body), localData(), true);
+      body.addEventListener('click', e => { const g = e.target.closest('[data-gall]'); if (g) $$('#sGroups [data-g]', body).forEach(c => c.checked = g.dataset.gall === '1'); });
+
+      $('#sExport', body).onclick = () => {
+        const ids = chosen($('#sGroups', body)); if (!ids.length) return toast(L('Elige al menos un grupo', 'Pick at least one group'), 'bad');
+        const all = localData(), data = Object.fromEntries(Object.entries(all).filter(([k]) => ids.includes(groupOf(k))));
+        const file = { app: 'BrainDeck', version: 1, exported: new Date().toISOString(), groups: ids, data };
+        download(new Blob([JSON.stringify(file, null, 1)], { type: 'application/json' }), `braindeck-${ids.length === $$('#sGroups [data-g]', body).length ? L('copia', 'backup') : ids.join('-')}-${BD.today()}.json`);
+        toast(L(`Exportado: ${Object.keys(data).length} bloques de datos`, `Exported: ${Object.keys(data).length} data blocks`));
+      };
+
+      // Combinar: listas con id se unen sin duplicar (lo importado actualiza lo que ya existe); lo demás solo se añade si no lo tienes
+      const merge = (cur, inc) => {
+        if (Array.isArray(cur) && Array.isArray(inc)) {
+          if (inc.every(x => x && typeof x === 'object' && 'id' in x)) { const m = new Map(cur.map(x => [x.id, x])); inc.forEach(x => m.set(x.id, x)); return [...m.values()]; }
+          return [...new Set([...cur, ...inc].map(x => JSON.stringify(x)))].map(x => JSON.parse(x));
+        }
+        if (cur && inc && typeof cur === 'object' && typeof inc === 'object') return { ...inc, ...cur, ...(Array.isArray(cur.topics) ? { topics: merge(cur.topics, inc.topics || []), results: merge(cur.results || [], inc.results || []), mistakes: merge(cur.mistakes || [], inc.mistakes || []) } : {}) };
+        return cur ?? inc;
+      };
+      let incoming = null, mode = 'merge';
+      const HELP = { merge: L('Combinar: añade lo importado a lo que ya tienes, sin duplicar.', 'Merge: adds the imported data to what you have, without duplicates.'),
+        replace: L('Reemplazar: los grupos elegidos se sustituyen por los del archivo.', 'Replace: the chosen groups are overwritten by the file\'s data.') };
+      BD.seg($('#sImpMode', body), [['merge', L('Combinar', 'Merge')], ['replace', L('Reemplazar', 'Replace')]], mode, v => { mode = v; $('#sImpHelp', body).textContent = HELP[v]; });
+      $('#sImpHelp', body).textContent = HELP[mode];
       $('#sImport', body).onchange = async e => {
-        const f = e.target.files[0]; if (!f) return;
+        const f = e.target.files[0]; e.target.value = ''; if (!f) return;
         try {
-          const data = JSON.parse(await BD.readText(f));
-          const key = settings().apiKey;
-          Object.entries(data).forEach(([k, v]) => store.set(k, v));
-          saveSettings({ apiKey: key });
-          toast('Copia importada'); setTimeout(() => location.reload(), 600);
-        } catch { toast('Archivo no válido', 'bad'); }
+          const raw = JSON.parse(await BD.readText(f));
+          // formato nuevo { app, data } o el antiguo (claves sueltas)
+          incoming = raw && raw.app === 'BrainDeck' && raw.data ? raw.data : raw;
+          if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw 0;
+          if (incoming.settings) delete incoming.settings.apiKey;
+          $('#sImpTitle', body).textContent = `${f.name}${raw.exported ? ' · ' + new Date(raw.exported).toLocaleString(BD.locale()) : ''}`;
+          groupList($('#sImpGroups', body), incoming, true);
+          $('#sImpBox', body).classList.remove('hidden');
+          $('#sImpBox', body).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch { toast(L('Archivo no válido: debe ser una copia de BrainDeck (.json)', 'Invalid file: it must be a BrainDeck backup (.json)'), 'bad'); }
+      };
+      $('#sImpCancel', body).onclick = () => { incoming = null; $('#sImpBox', body).classList.add('hidden'); };
+      $('#sImpGo', body).onclick = () => {
+        const ids = chosen($('#sImpGroups', body)); if (!incoming || !ids.length) return toast(L('Elige al menos un grupo', 'Pick at least one group'), 'bad');
+        const key = settings().apiKey;
+        if (mode === 'replace') BD.store.keys().filter(k => ids.includes(groupOf(k)) && k !== 'settings').forEach(k => store.del(k));
+        Object.entries(incoming).filter(([k]) => ids.includes(groupOf(k))).forEach(([k, v]) => {
+          if (k === 'settings') return saveSettings({ ...v, apiKey: key });
+          store.set(k, mode === 'merge' ? merge(store.get(k, undefined), v) : v);
+        });
+        toast(L('Datos importados ✨', 'Data imported ✨')); setTimeout(() => location.reload(), 700);
       };
       $('#sReset', body).onclick = () => {
         const b = $('#sReset', body);

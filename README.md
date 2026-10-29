@@ -122,7 +122,11 @@ La IA es opcional y tiene tres niveles:
 
 - No hay servidor, analítica ni cuentas.
 - Imágenes, PDFs, audios y notas se procesan en el navegador.
-- Los datos viven en `localStorage` y se pueden exportar o importar desde Ajustes. La API key nunca se exporta.
+- Los datos viven en `localStorage`. Desde **Ajustes → Importar y exportar datos** puedes:
+  - elegir qué grupos guardar (notas, planes, tests, retos, paletas, ahorro…);
+  - ver qué trae un archivo antes de importarlo;
+  - **combinarlo** con lo que ya tienes, sin duplicados, o **reemplazarlo**.
+- La API key nunca se exporta.
 
 ## Arquitectura
 
