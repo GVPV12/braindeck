@@ -181,6 +181,10 @@
             <span class="dash-lv">LV.${c.level}</span>
             <span class="dash-title">BRAINDECK.EXE</span>
             <span class="spacer"></span>
+            <span class="dash-install-w">
+              <button type="button" class="dash-date dash-install hidden" id="dashInstall" aria-haspopup="dialog" aria-expanded="false" title="${L('Instalar BrainDeck como app', 'Install BrainDeck as an app')}" aria-label="${L('Instalar app', 'Install app')}">${BD.icon('download')}<span>${L('Instalar app', 'Install app')}</span></button>
+              <div class="dash-install-pop hidden" id="dashInstallPop" role="dialog" aria-label="${L('Cómo instalar BrainDeck', 'How to install BrainDeck')}"></div>
+            </span>
             <span class="dash-date" id="dashClock"></span>
           </div>
           <div class="dash-cat-wrap">${BD.CAT || ''}</div>
@@ -246,7 +250,7 @@
 
         <section class="device" aria-label="${L('Herramientas', 'Tools')}">
           <div class="dev-screen">
-            <div class="dev-status"><span id="devTime"></span><b>BrainDeck OS</b><span class="dev-power"><span id="battPct">100%</span><span class="dev-batt" id="batt"><i style="width:100%"></i></span></span></div>
+            <div class="dev-status"><span id="devTime"></span><b>BrainDeck OS</b><span class="dev-power"><span id="battPct"></span><span class="dev-batt" id="batt"><i style="width:100%"></i></span></span></div>
             <div class="dev-grid">${appGrid(main, extra)}</div>
             <div class="dev-dock">
               <a class="dev-app" href="#/herramientas">${BD.appIcon('/herramientas')}<span class="dev-label">${L('Todas', 'All')}</span></a>
@@ -284,13 +288,54 @@
         b.classList.toggle('low', pct <= 20 && !charging);
         b.title = bat ? (charging ? L('Cargando', 'Charging') : L('Con batería', 'On battery')) : L('Sin datos de batería', 'No battery data');
       };
-      showBatt();
+      // Mientras el navegador responde no se muestra nada (evita que una laptop parpadee en 100 %)
       if (navigator.getBattery) navigator.getBattery().then(b => {
         bat = b; showBatt();
         ['levelchange', 'chargingchange'].forEach(ev => b.addEventListener(ev, showBatt));
-      }).catch(() => {});
+      }).catch(showBatt);
+      else showBatt();
+
+      // ---------- Instalar la app (PWA) ----------
+      const inst = view.querySelector('#dashInstall'), pop = view.querySelector('#dashInstallPop');
+      const installed = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+      const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+      const safari = /Safari/.test(ua) && !/Chrome|CriOS|Edg|FxiOS|Firefox/.test(ua), firefox = /Firefox|FxiOS/.test(ua);
+      // Instrucciones para los navegadores que no tienen botón de instalar automático
+      function steps() {
+        const li = s => `<li>${s}</li>`;
+        if (ios) return [L('En iPhone/iPad, desde <b>Safari</b>:', 'On iPhone/iPad, in <b>Safari</b>:'), li(L('Toca <b>Compartir</b> (el cuadrado con la flecha).', 'Tap <b>Share</b> (the square with the arrow).')), li(L('Elige <b>Añadir a pantalla de inicio</b>.', 'Choose <b>Add to Home Screen</b>.'))];
+        if (safari) return [L('En Safari para Mac:', 'In Safari on Mac:'), li(L('Menú <b>Archivo</b> → <b>Añadir al Dock</b>.', '<b>File</b> menu → <b>Add to Dock</b>.'))];
+        if (firefox && /Android/.test(ua)) return [L('En Firefox para Android:', 'In Firefox for Android:'), li(L('Menú ⋮ → <b>Añadir a pantalla de inicio</b>.', 'Menu ⋮ → <b>Add to Home screen</b>.'))];
+        if (firefox) return [L('Firefox de escritorio no instala apps web. Ábrela en <b>Chrome</b> o <b>Edge</b> y pulsa este botón allí.', 'Desktop Firefox can\'t install web apps. Open it in <b>Chrome</b> or <b>Edge</b> and press this button there.')];
+        return [L('En Chrome o Edge:', 'In Chrome or Edge:'), li(L('Pulsa el icono de instalar a la derecha de la barra de direcciones,', 'Click the install icon at the right of the address bar,')),
+          li(L('o menú ⋮ → <b>Enviar, guardar y compartir</b> → <b>Instalar página como app</b> (en Edge: <b>Aplicaciones</b>).', 'or menu ⋮ → <b>Cast, save and share</b> → <b>Install page as app</b> (in Edge: <b>Apps</b>).'))];
+      }
+      const showInst = () => inst.classList.toggle('hidden', installed() || !location.protocol.startsWith('http'));
+      showInst();
+      const closePop = () => { pop.classList.add('hidden'); inst.setAttribute('aria-expanded', 'false'); };
+      inst.onclick = async e => {
+        e.stopPropagation();
+        const ev = window.__bdInstall; // lo guarda boot.js (Chrome/Edge/Android lo ofrecen una sola vez)
+        if (ev) {
+          ev.prompt();
+          const { outcome } = await ev.userChoice;
+          window.__bdInstall = null;
+          if (outcome === 'accepted') { inst.classList.add('hidden'); toast(L('¡BrainDeck instalada! 🎉', 'BrainDeck installed! 🎉')); }
+          return;
+        }
+        const [head, ...items] = steps();
+        pop.innerHTML = `<p>${head}</p>${items.length ? `<ol>${items.join('')}</ol>` : ''}<p class="muted small">${L('Se abre en su propia ventana y funciona sin conexión.', 'It opens in its own window and works offline.')}</p>`;
+        const open = pop.classList.toggle('hidden') === false; inst.setAttribute('aria-expanded', String(open));
+      };
+      const onDoc = e => { if (!e.target.closest('.dash-install-w')) closePop(); };
+      const onKey = e => { if (e.key === 'Escape') closePop(); };
+      const onInstalled = () => { inst.classList.add('hidden'); closePop(); };
+      document.addEventListener('click', onDoc); document.addEventListener('keydown', onKey);
+      window.addEventListener('appinstalled', onInstalled); window.addEventListener('bd:installable', showInst);
       return () => {
         clearInterval(id);
+        document.removeEventListener('click', onDoc); document.removeEventListener('keydown', onKey);
+        window.removeEventListener('appinstalled', onInstalled); window.removeEventListener('bd:installable', showInst);
         if (bat) ['levelchange', 'chargingchange'].forEach(ev => bat.removeEventListener(ev, showBatt));
       };
     },

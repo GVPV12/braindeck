@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 -8 112 92">
+  <!-- Favicon: gatito BrainDeck recortado para que se vea grande en la pestaña. Contorno blanco para fondos oscuros. Sin <use> para máxima compatibilidad. -->
+  <path d="M30 17 L25 0 L47 12 C55 9.5 65 9.5 73 12 L95 0 L90 17 C101 23 108 34 108 48 C108 66 88 76 60 76 C32 76 12 66 12 48 C12 34 19 23 30 17 Z" fill="#141414" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+  <circle cx="44" cy="42" r="11" fill="#f3ecd2"/><circle cx="76" cy="42" r="11" fill="#f3ecd2"/>
+  <circle cx="44" cy="43" r="7.5" fill="#141414"/><circle cx="76" cy="43" r="7.5" fill="#141414"/>
+  <circle cx="47" cy="40" r="2.5" fill="#fff"/><circle cx="79" cy="40" r="2.5" fill="#fff"/>
+</svg>

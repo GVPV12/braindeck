@@ -1000,6 +1000,21 @@ canvas.preview { max-width: 100%; border-radius: var(--radius-sm); border: var(-
 .dash-title { font: 700 .78rem var(--mono); letter-spacing: .18em; color: var(--muted); }
 .dash-date { font: 600 .8rem var(--font); padding: 5px 12px; border-radius: 999px; border: var(--bw) solid var(--dw-line); background: var(--dw-bg); text-transform: capitalize; }
 [data-theme="paper"] .dash-date, [data-theme="neo"] .dash-date { border-radius: 4px; box-shadow: 3px 3px 0 var(--border); }
+/* Botón "Instalar app": misma pastilla que la fecha, pero invertida para que se note que se puede pulsar */
+.dash-install-w { position: relative; display: inline-flex; }
+.dash-install { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; color: var(--dw-bg); background: var(--text); border-color: var(--text);
+  text-transform: none; transition: transform .15s, box-shadow .15s; }
+.dash-install .ic { width: 15px; height: 15px; }
+.dash-install:hover { transform: translate(-1px, -1px); }
+[data-theme="paper"] .dash-install:hover, [data-theme="neo"] .dash-install:hover { box-shadow: 4px 4px 0 var(--border); }
+.dash-install:active { transform: translate(2px, 2px); box-shadow: none; }
+[data-theme="neo"] .dash-install { background: var(--accent); color: #141414; border-color: #141414; }
+[data-theme="cosmos"] .dash-install { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #fff; border-color: transparent; }
+.dash-install-pop { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; width: min(300px, 80vw); padding: 12px 14px; font-size: .82rem; line-height: 1.45;
+  background: var(--dw-bg); color: var(--text); border: var(--bw) solid var(--dw-line); border-radius: 12px; box-shadow: var(--shadow); }
+[data-theme="paper"] .dash-install-pop, [data-theme="neo"] .dash-install-pop { border: 2px solid var(--border); border-radius: 4px; box-shadow: 5px 5px 0 var(--border); }
+.dash-install-pop p { margin: 0 0 6px; } .dash-install-pop ol { margin: 0 0 8px; padding-left: 18px; } .dash-install-pop li { margin: 3px 0; }
+@media (max-width: 600px) { .dash-install span { display: none; } .dash-install-pop { right: auto; left: 0; } }
 
 .dash-grid { display: grid; gap: 16px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
 .dw-me { grid-column: span 5; } .dw-stats { grid-column: span 4; } .dw-data { grid-column: span 3; }

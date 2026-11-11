@@ -3,10 +3,10 @@
    - Archivos propios (HTML, CSS, JS, imágenes): primero la red (para recibir siempre la última versión) y, sin conexión, la copia guardada.
    - Librerías de CDN con versión fija y fuentes: primero la copia guardada (nunca cambian).
    - Todo lo demás (API de Claude, radios, modelos de IA, imágenes de Wikimedia) pasa directo sin guardarse. */
-const VERSION = 'bd-v1';
+const VERSION = 'bd-v2';
 const SHELL = `${VERSION}-shell`, LIBS = `${VERSION}-libs`;
 const CORE = [
-  './', 'index.html', 'manifest.webmanifest', 'css/app.css', 'img/logo.svg', 'img/icon.svg',
+  './', 'index.html', 'manifest.webmanifest', 'css/app.css', 'img/logo.svg', 'img/icon.svg', 'img/favicon.svg',
   'js/boot.js', 'js/core.js', 'js/pixel.js', 'js/i18n.js', 'js/home.js', 'js/commission.js', 'js/watermark.js', 'js/notes.js',
   'js/progress.js', 'js/study.js', 'js/savings.js', 'js/convert.js', 'js/pdfmerge.js', 'js/videodl.js', 'js/subtitles.js',
   'js/creative.js', 'js/palette.js', 'js/gesture.js', 'js/challenge.js', 'js/speak.js', 'js/bgremove.js', 'js/pdftools.js',
