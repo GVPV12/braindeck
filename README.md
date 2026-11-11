@@ -7,7 +7,7 @@
 **Una mesa de trabajo web para crear y aprender.**
 Herramientas para artistas, autodidactas y creativos, todo dentro de tu navegador.
 
-[Demo en vivo](https://gvpv12.github.io/braindeck/) · [Herramientas](#herramientas) · [Empezar](#empezar) · [English](#english)
+[Demo en vivo](https://mybraindeck.netlify.app/) · [Herramientas](#herramientas) · [Empezar](#empezar) · [English](#english)
 
 ![HTML](https://img.shields.io/badge/HTML-static-e34f26?style=flat-square)
 ![JavaScript](https://img.shields.io/badge/JavaScript-vanilla-f7df1e?style=flat-square&logoColor=black)
@@ -96,7 +96,7 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 
 ## Empezar
 
-**Online:** abre la [demo](https://gvpv12.github.io/braindeck/).
+**Online:** abre la [demo](https://mybraindeck.netlify.app/).
 
 **En local:**
 
