@@ -104,6 +104,8 @@
     '/ahorro': () => n(arr('savings:plans'), L('plan de ahorro', 'savings plan'), L('planes de ahorro', 'savings plans')),
     '/comision': () => store.get('commission:last', null) ? L('Último cálculo guardado', 'Last calculation saved') : L('Sin cálculos aún', 'No calculations yet'),
     '/decisiones': () => n(arr('decisions'), L('decisión', 'decision'), L('decisiones', 'decisions')),
+    '/comprimir': () => { const s = store.get('compress:saved', 0); return s ? L(`${BD.fmtBytes(s)} ahorrados`, `${BD.fmtBytes(s)} saved`) : L('Sin compresiones aún', 'No compressions yet'); },
+    '/atajos': () => n(arr('shortcuts:fav'), L('atajo favorito', 'favorite shortcut'), L('atajos favoritos', 'favorite shortcuts')),
     '/juegos': () => `${L('Quiz', 'Quiz')} ${store.get('games:quizBest', 0)}/10 · ${L('Países', 'Countries')} ${store.get('games:countriesBest', 0)}/10 · ${arr('games:endings')} ${L('finales', 'endings')}`,
   };
   const ago = ms => {
@@ -125,6 +127,7 @@
     '/subtitulos': () => L('Intérprete', 'Interpreter'), '/editar-pdf': () => L('Copista', 'Copyist'), '/unir-pdf': () => L('Coleccionista de páginas', 'Page collector'),
     '/qr': () => 'Hacker', '/comision': () => L('Comerciante', 'Merchant'), '/ahorro': () => L('Economista', 'Economist'),
     '/decisiones': () => L('Analista', 'Analyst'), '/juegos': () => 'Gamer',
+    '/comprimir': () => L('Minimalista', 'Minimalist'), '/atajos': () => L('Ninja del teclado', 'Keyboard ninja'),
   };
 
   // ---------- piezas ----------
@@ -243,7 +246,7 @@
 
         <section class="device" aria-label="${L('Herramientas', 'Tools')}">
           <div class="dev-screen">
-            <div class="dev-status"><span id="devTime"></span><b>BrainDeck OS</b><span class="dev-batt" title="XP"><i style="width:${Math.round(c.lvXp / c.lvNeed * 100)}%"></i></span></div>
+            <div class="dev-status"><span id="devTime"></span><b>BrainDeck OS</b><span class="dev-power"><span id="battPct">100%</span><span class="dev-batt" id="batt"><i style="width:100%"></i></span></span></div>
             <div class="dev-grid">${appGrid(main, extra)}</div>
             <div class="dev-dock">
               <a class="dev-app" href="#/herramientas">${BD.appIcon('/herramientas')}<span class="dev-label">${L('Todas', 'All')}</span></a>
@@ -269,7 +272,27 @@
       };
 
       clock(); const id = setInterval(clock, 20000);
-      return () => clearInterval(id);
+
+      // Batería real del dispositivo (Chrome/Edge). Un PC de escritorio informa 100 % enchufado;
+      // si el navegador no da el dato (Firefox, Safari) también se muestra 100 %.
+      let bat = null;
+      const showBatt = () => {
+        const pct = bat ? Math.round(bat.level * 100) : 100, charging = !bat || bat.charging;
+        const t = document.getElementById('battPct'), b = document.getElementById('batt'); if (!t || !b) return;
+        t.textContent = (charging && bat && pct < 100 ? '⚡' : '') + pct + '%';
+        b.firstElementChild.style.width = pct + '%';
+        b.classList.toggle('low', pct <= 20 && !charging);
+        b.title = bat ? (charging ? L('Cargando', 'Charging') : L('Con batería', 'On battery')) : L('Sin datos de batería', 'No battery data');
+      };
+      showBatt();
+      if (navigator.getBattery) navigator.getBattery().then(b => {
+        bat = b; showBatt();
+        ['levelchange', 'chargingchange'].forEach(ev => b.addEventListener(ev, showBatt));
+      }).catch(() => {});
+      return () => {
+        clearInterval(id);
+        if (bat) ['levelchange', 'chargingchange'].forEach(ev => bat.removeEventListener(ev, showBatt));
+      };
     },
   });
 })();

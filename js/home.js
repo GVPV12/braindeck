@@ -214,7 +214,11 @@
           'Con una API key de Anthropic, las notas, resúmenes y tests salen mucho mejor. La key se guarda solo en este navegador y se envía únicamente a api.anthropic.com. No la uses en un ordenador compartido.',
           'With an Anthropic API key, notes, summaries and tests come out much better. The key is stored only in this browser and sent only to api.anthropic.com. Don\'t use it on a shared computer.')}</p>
         <div class="grid g2">
-          <label class="field"><span>API key</span><input type="password" id="sKey" value="${esc(s.apiKey)}" placeholder="sk-ant-…" autocomplete="off"></label>
+          <div class="stack" style="gap:6px">
+            <label class="field"><span>API key</span><input type="password" id="sKey" value="${esc(s.apiKey)}" placeholder="sk-ant-…" autocomplete="off" spellcheck="false"></label>
+            <label class="check small"><input type="checkbox" id="sKeyKeep" ${s.keyMode === 'save' ? 'checked' : ''}> ${L('Recordarla en este navegador', 'Remember it in this browser')}</label>
+            <span class="muted small" id="sKeyHelp"></span>
+          </div>
           <label class="field"><span>${L('Modelo', 'Model')}</span>
             <select id="sModel">${[['claude-sonnet-5-5', L('Sonnet 5.5 (recomendado)', 'Sonnet 5.5 (recommended)')], ['claude-haiku-5-5', L('Haiku 5.5 (rápido y barato)', 'Haiku 5.5 (fast and cheap)')], ['claude-opus-5-5', L('Opus 5.5 (máxima calidad)', 'Opus 5.5 (top quality)')]].map(([v, l]) => `<option value="${v}" ${v === s.model ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         </div>
@@ -227,6 +231,12 @@
           <div class="row"><b style="flex:1">${L('¿Qué quieres exportar?', 'What do you want to export?')}</b>
             <button class="btn ghost sm" data-gall="1">${L('Todo', 'All')}</button><button class="btn ghost sm" data-gall="0">${L('Nada', 'None')}</button></div>
           <div class="data-groups" id="sGroups"></div>
+          <label class="check"><input type="checkbox" id="sEnc"> 🔒 ${L('Cifrar la copia con contraseña (AES-256)', 'Encrypt the backup with a password (AES-256)')}</label>
+          <div class="grid g2 hidden" id="sEncBox">
+            <label class="field"><span>${L('Contraseña', 'Password')}</span><input type="password" id="sEncP1" autocomplete="new-password"></label>
+            <label class="field"><span>${L('Repítela', 'Repeat it')}</span><input type="password" id="sEncP2" autocomplete="new-password"></label>
+            <p class="muted small" style="grid-column:1/-1">${L('Si la olvidas no hay forma de recuperar la copia. Útil si la guardas en la nube o un USB.', 'If you forget it the backup cannot be recovered. Useful if you keep it in the cloud or on a USB drive.')}</p>
+          </div>
           <div class="row">
             <button class="btn primary" id="sExport">⬇ ${L('Exportar copia', 'Export backup')}</button>
             <label class="btn ghost">⬆ ${L('Importar copia', 'Import backup')}<input type="file" id="sImport" accept=".json,application/json" hidden></label>
@@ -236,11 +246,16 @@
         </div>
         <div class="card stack hidden" id="sImpBox" style="margin-top:14px">
           <b id="sImpTitle"></b>
+          <div class="row hidden" id="sImpLock">
+            <label class="field" style="flex:1"><span>🔒 ${L('Esta copia está cifrada: escribe su contraseña', 'This backup is encrypted: enter its password')}</span><input type="password" id="sImpPass" autocomplete="off"></label>
+            <button class="btn primary" id="sImpUnlock">${L('Abrir', 'Unlock')}</button>
+          </div>
           <div class="data-groups" id="sImpGroups"></div>
           <div class="field"><span>${L('¿Cómo importar?', 'How to import?')}</span><div id="sImpMode"></div>
             <span class="muted small" id="sImpHelp"></span></div>
           <div class="row"><button class="btn primary" id="sImpGo">${L('Importar seleccionados', 'Import selected')}</button><button class="btn ghost" id="sImpCancel">${L('Cancelar', 'Cancel')}</button></div>
         </div>
+        <p class="muted small" id="sUsage" style="margin-top:10px"></p>
         <hr class="sep">
         <div class="row"><a class="btn ghost" href="https://grevaleart.com/" target="_blank" rel="noopener">${L('Mi portafolio', 'My portfolio')} ↗</a><a class="btn ghost" href="#/findme">${L('Estoy en', 'Find me on')} →</a></div>`;
 
@@ -253,7 +268,19 @@
       const collect = () => ({
         author: $('#sAuthor', body).value.trim(), currency: $('#sCur', body).value,
         apiKey: $('#sKey', body).value.trim(), model: $('#sModel', body).value,
+        keyMode: $('#sKeyKeep', body).checked ? 'save' : 'session',
       });
+      const keyHelp = () => $('#sKeyHelp', body).textContent = $('#sKeyKeep', body).checked
+        ? L('Se guarda en este navegador hasta que la borres.', 'Stored in this browser until you delete it.')
+        : L('Solo para esta pestaña: se olvida al cerrarla y nunca se escribe en disco (más seguro).', 'This tab only: forgotten when you close it and never written to disk (safer).');
+      $('#sKeyKeep', body).addEventListener('change', keyHelp); keyHelp();
+      // Espacio usado
+      (async () => {
+        const u = store.usage(); let txt = L(`Espacio usado: ${BD.fmtBytes(u.local)} de ~5 MB en almacenamiento rápido`, `Space used: ${BD.fmtBytes(u.local)} of ~5 MB in fast storage`);
+        if (u.idb) txt += L(` + ${BD.fmtBytes(u.idb)} en IndexedDB`, ` + ${BD.fmtBytes(u.idb)} in IndexedDB`);
+        try { if (navigator.storage && navigator.storage.persisted && await navigator.storage.persisted()) txt += L(' · protegido contra borrado automático ✓', ' · protected from automatic eviction ✓'); } catch {}
+        const el = $('#sUsage', body); if (el) el.textContent = txt + '.';
+      })();
       // Los campos se guardan solos al cambiar (el botón queda como confirmación)
       body.addEventListener('change', e => { if (e.target.closest('.grid')) saveSettings(collect()); });
       $('#sSave', body).onclick = () => { saveSettings(collect()); toast(L('Ajustes guardados ✨', 'Settings saved ✨')); };
@@ -291,7 +318,7 @@
         ['money', L('Ahorro y comisiones', 'Savings & commissions'), ['savings:', 'commission:']],
         ['decisions', 'Decision Log', ['decisions']],
         ['games', L('Minijuegos (récords y dibujos)', 'Mini games (records & drawings)'), ['games:']],
-        ['prefs', L('Preferencias de herramientas y orden del menú', 'Tool preferences & menu order'), ['wm:', 'conv:', 'vdl:', 'subs:', 'bg:', 'pdft:', 'qr:', 'layout', 'hero:', 'timer', 'radio', 'radio:']],
+        ['prefs', L('Preferencias de herramientas y orden del menú', 'Tool preferences & menu order'), ['wm:', 'conv:', 'vdl:', 'subs:', 'bg:', 'pdft:', 'qr:', 'compress:', 'shortcuts:', 'layout', 'hero:', 'timer', 'radio', 'radio:']],
         ['settings', L('Ajustes (idioma, estilo, autor, avatar; sin API key)', 'Settings (language, style, author, avatar; no API key)'), ['settings', 'profile']],
       ];
       const groupOf = k => (GROUPS.find(([, , ks]) => ks.some(p => p.endsWith(':') ? k.startsWith(p) : k === p)) || ['other'])[0];
@@ -310,11 +337,21 @@
       groupList($('#sGroups', body), localData(), true);
       body.addEventListener('click', e => { const g = e.target.closest('[data-gall]'); if (g) $$('#sGroups [data-g]', body).forEach(c => c.checked = g.dataset.gall === '1'); });
 
-      $('#sExport', body).onclick = () => {
+      $('#sEnc', body).onchange = e => $('#sEncBox', body).classList.toggle('hidden', !e.target.checked);
+      if (!BD.vault.available()) $('#sEnc', body).closest('label').classList.add('hidden'); // Web Crypto solo existe en https o localhost
+      $('#sExport', body).onclick = async () => {
         const ids = chosen($('#sGroups', body)); if (!ids.length) return toast(L('Elige al menos un grupo', 'Pick at least one group'), 'bad');
         const all = localData(), data = Object.fromEntries(Object.entries(all).filter(([k]) => ids.includes(groupOf(k))));
         const file = { app: 'BrainDeck', version: 1, exported: new Date().toISOString(), groups: ids, data };
-        download(new Blob([JSON.stringify(file, null, 1)], { type: 'application/json' }), `braindeck-${ids.length === $$('#sGroups [data-g]', body).length ? L('copia', 'backup') : ids.join('-')}-${BD.today()}.json`);
+        const enc = $('#sEnc', body).checked;
+        if (enc) {
+          const p1 = $('#sEncP1', body).value, p2 = $('#sEncP2', body).value;
+          if (p1.length < 8) return toast(L('Usa una contraseña de al menos 8 caracteres', 'Use a password of at least 8 characters'), 'bad');
+          if (p1 !== p2) return toast(L('Las contraseñas no coinciden', 'Passwords don\'t match'), 'bad');
+          file.enc = await BD.vault.lock(data, p1); delete file.data;
+          $('#sEncP1', body).value = $('#sEncP2', body).value = '';
+        }
+        download(new Blob([JSON.stringify(file, null, 1)], { type: 'application/json' }), `braindeck-${ids.length === $$('#sGroups [data-g]', body).length ? L('copia', 'backup') : ids.join('-')}${enc ? '-cifrada' : ''}-${BD.today()}.json`);
         toast(L(`Exportado: ${Object.keys(data).length} bloques de datos`, `Exported: ${Object.keys(data).length} data blocks`));
       };
 
@@ -334,32 +371,54 @@
       $('#sImpHelp', body).textContent = HELP[mode];
       $('#sImport', body).onchange = async e => {
         const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+        if (f.size > 50 * 1048576) return toast(L('Archivo demasiado grande para ser una copia de BrainDeck', 'File too large to be a BrainDeck backup'), 'bad');
         try {
           const raw = JSON.parse(await BD.readText(f));
-          // formato nuevo { app, data } o el antiguo (claves sueltas)
-          incoming = raw && raw.app === 'BrainDeck' && raw.data ? raw.data : raw;
-          if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw 0;
-          if (incoming.settings) delete incoming.settings.apiKey;
           $('#sImpTitle', body).textContent = `${f.name}${raw.exported ? ' · ' + new Date(raw.exported).toLocaleString(BD.locale()) : ''}`;
-          groupList($('#sImpGroups', body), incoming, true);
           $('#sImpBox', body).classList.remove('hidden');
+          // copia cifrada: se pide la contraseña antes de mostrar qué trae
+          if (raw && raw.app === 'BrainDeck' && raw.enc) {
+            incoming = null; locked = raw.enc;
+            $('#sImpLock', body).classList.remove('hidden'); $('#sImpGroups', body).innerHTML = '';
+            $('#sImpPass', body).value = ''; $('#sImpPass', body).focus();
+          } else {
+            // formato nuevo { app, data } o el antiguo (claves sueltas)
+            showIncoming(raw && raw.app === 'BrainDeck' && raw.data ? raw.data : raw);
+          }
           $('#sImpBox', body).scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } catch { toast(L('Archivo no válido: debe ser una copia de BrainDeck (.json)', 'Invalid file: it must be a BrainDeck backup (.json)'), 'bad'); }
+        } catch { $('#sImpBox', body).classList.add('hidden'); toast(L('Archivo no válido: debe ser una copia de BrainDeck (.json)', 'Invalid file: it must be a BrainDeck backup (.json)'), 'bad'); }
       };
+      let locked = null;
+      function showIncoming(data) {
+        if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('bad');
+        // solo claves de texto razonables (nada de rutas raras ni prototipos)
+        incoming = Object.fromEntries(Object.entries(data).filter(([k]) => /^[\w:.-]{1,80}$/.test(k) && k !== '__proto__'));
+        if (incoming.settings) delete incoming.settings.apiKey;
+        $('#sImpLock', body).classList.add('hidden');
+        groupList($('#sImpGroups', body), incoming, true);
+      }
+      const unlock = async () => {
+        const b = $('#sImpUnlock', body); b.disabled = true;
+        try { showIncoming(await BD.vault.unlock(locked, $('#sImpPass', body).value)); locked = null; }
+        catch (err) { toast(err.message === 'bad' ? L('Archivo no válido', 'Invalid file') : err.message, 'bad'); }
+        b.disabled = false;
+      };
+      $('#sImpUnlock', body).onclick = unlock;
+      $('#sImpPass', body).onkeydown = e => { if (e.key === 'Enter') unlock(); };
       $('#sImpCancel', body).onclick = () => { incoming = null; $('#sImpBox', body).classList.add('hidden'); };
       $('#sImpGo', body).onclick = () => {
         const ids = chosen($('#sImpGroups', body)); if (!incoming || !ids.length) return toast(L('Elige al menos un grupo', 'Pick at least one group'), 'bad');
-        const key = settings().apiKey;
+        const { apiKey: key, keyMode } = settings();
         if (mode === 'replace') BD.store.keys().filter(k => ids.includes(groupOf(k)) && k !== 'settings').forEach(k => store.del(k));
         Object.entries(incoming).filter(([k]) => ids.includes(groupOf(k))).forEach(([k, v]) => {
-          if (k === 'settings') return saveSettings({ ...v, apiKey: key });
+          if (k === 'settings') return saveSettings({ ...(v && typeof v === 'object' ? v : {}), apiKey: key, keyMode });
           store.set(k, mode === 'merge' ? merge(store.get(k, undefined), v) : v);
         });
         toast(L('Datos importados ✨', 'Data imported ✨')); setTimeout(() => location.reload(), 700);
       };
       $('#sReset', body).onclick = () => {
         const b = $('#sReset', body);
-        if (b.dataset.armed) { BD.store.keys().forEach(k => store.del(k)); toast('Datos borrados'); setTimeout(() => location.reload(), 600); return; }
+        if (b.dataset.armed) { BD.store.keys().forEach(k => store.del(k)); try { sessionStorage.removeItem('bd:key'); } catch {} toast('Datos borrados'); setTimeout(() => location.reload(), 600); return; }
         b.dataset.armed = 1; b.textContent = '¿Seguro? Pulsa otra vez';
         setTimeout(() => { if (document.body.contains(b)) { delete b.dataset.armed; b.textContent = 'Borrar todo'; } }, 3500);
       };

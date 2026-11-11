@@ -11,12 +11,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700&family=Pixelify+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
-  <script>
-    // Aplica el estilo e idioma guardados antes de pintar (evita el parpadeo del tema por defecto)
-    try { const s = JSON.parse(localStorage.getItem('bd:settings') || '{}'); if (s.theme) document.documentElement.dataset.theme = s.theme; if (s.lang) document.documentElement.lang = s.lang; } catch {}
-  </script>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <script src="js/boot.js"></script>
 </head>
 <body>
+  <button type="button" class="skip-link" id="skipLink">Saltar al contenido</button>
+  <noscript><p style="padding:20px;text-align:center">BrainDeck necesita JavaScript activado. / BrainDeck needs JavaScript enabled.</p></noscript>
   <div class="bg" aria-hidden="true">
     <div class="stars"></div>
     <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>
@@ -41,7 +42,7 @@
           <button class="icon-btn" id="themeCycle" title="Cambiar estilo" aria-label="Cambiar estilo">◐</button>
         </div>
       </header>
-      <div id="view" class="view"></div>
+      <div id="view" class="view" tabindex="-1"></div>
     </main>
   </div>
 
@@ -70,6 +71,8 @@
   <script src="js/bgremove.js"></script>
   <script src="js/pdftools.js"></script>
   <script src="js/qr.js"></script>
+  <script src="js/compress.js"></script>
+  <script src="js/shortcuts.js"></script>
   <script src="js/games.js"></script>
   <script src="js/findme.js"></script>
   <script src="js/qnotes.js"></script>

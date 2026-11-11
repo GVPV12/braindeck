@@ -1,0 +1,17 @@
+{
+  "name": "braindeck",
+  "private": true,
+  "description": "BrainDeck: herramientas para crear y aprender. Web estática; este archivo solo sirve para las pruebas y el lint (la app no necesita compilarse).",
+  "scripts": {
+    "serve": "http-server -p 4173 -c-1 --silent .",
+    "lint": "eslint js sw.js",
+    "test": "playwright test",
+    "test:i18n": "playwright test tests/i18n.spec.js --reporter=list"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.48.2",
+    "eslint": "9.14.0",
+    "globals": "15.12.0",
+    "http-server": "14.1.1"
+  }
+}

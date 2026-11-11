@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Icono de la app instalada (PWA): gatito BrainDeck sobre fondo, con margen para iconos "maskable" -->
+  <rect width="512" height="512" fill="#ffd978"/>
+  <g transform="translate(96 150) scale(2.67)">
+    <path d="M30 17 L25 0 L47 12 C55 9.5 65 9.5 73 12 L95 0 L90 17 C101 23 108 34 108 48 C108 66 88 76 60 76 C32 76 12 66 12 48 C12 34 19 23 30 17 Z" fill="#141414" stroke="#141414" stroke-width="4" stroke-linejoin="round"/>
+    <circle cx="44" cy="42" r="9.5" fill="#f3ecd2"/><circle cx="76" cy="42" r="9.5" fill="#f3ecd2"/>
+    <circle cx="44" cy="43" r="6.5" fill="#141414"/><circle cx="76" cy="43" r="6.5" fill="#141414"/>
+    <circle cx="46.5" cy="40" r="2" fill="#fff"/><circle cx="78.5" cy="40" r="2" fill="#fff"/>
+    <path d="M56 56 Q60 60 64 56" fill="none" stroke="#ff8fb1" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+</svg>

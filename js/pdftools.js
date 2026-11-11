@@ -86,7 +86,7 @@
         async onFiles([f]) {
           try {
             bytes = new Uint8Array(await f.arrayBuffer()); name = BD.baseName(f.name);
-            const lib = await pdfjs(), doc = await lib.getDocument({ data: bytes.slice() }).promise;
+            const lib = await pdfjs(), doc = await lib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise;
             pages = Array.from({ length: doc.numPages }, (_, i) => ({ src: i, rot: 0, sel: false, thumb: '' }));
             v('tDrop').classList.add('hidden'); v('tMain').classList.remove('hidden');
             v('tName').textContent = `${f.name} · ${doc.numPages} ${L('págs.', 'pages')} · ${fmtBytes(f.size)}`;
@@ -219,7 +219,7 @@
       v('tComp').onclick = e => run(e.currentTarget, async () => {
         sync();
         const lib = await pdfjs(); await BD.loadScript(BD.LIB.pdflib);
-        const doc = await lib.getDocument({ data: bytes.slice() }).promise, out = await PDFLib.PDFDocument.create();
+        const doc = await lib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise, out = await PDFLib.PDFDocument.create();
         for (let i = 0; i < pages.length; i++) {
           st(`<span class="spin"></span> ${L('Página', 'Page')} ${i + 1}/${pages.length}`);
           const p = pages[i], pg = await doc.getPage(p.src + 1), vp = pg.getViewport({ scale: o.dpi / 72, rotation: (pg.rotate + p.rot) % 360 });

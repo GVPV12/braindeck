@@ -10,7 +10,7 @@
   async function pdfText(file, onP) {
     await BD.loadScript(BD.LIB.pdf);
     pdfjsLib.GlobalWorkerOptions.workerSrc = BD.LIB.pdfWorker;
-    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false }).promise;
     const pages = [];
     for (let i = 1; i <= pdf.numPages; i++) {
       const c = await (await pdf.getPage(i)).getTextContent();

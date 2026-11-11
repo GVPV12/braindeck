@@ -50,6 +50,12 @@
     '/convertir': { tile: T.blue, p: { k: K, b: '#8fd3ff', g: '#2ec27e', y: '#ffd36b', d: '#1f9d61' }, r: [
       '............', 'kkkkkkkkkkkk', 'kbbbbbbbbyyk', 'kbbbbbbbbyyk', 'kbbbbkbbbbbk', 'kbbbkgkbbbbk',
       'kbbkgggkbkbk', 'kbkgggggkdkk', 'kkgggggggddk', 'kgggggggdddk', 'kkkkkkkkkkkk', '............'] },
+    '/comprimir': { tile: T.peach, p: { k: K, b: '#8fd3ff', y: '#ffd36b', g: '#2ec27e' }, r: [
+      '............', '............', '...kkkkkk...', '...kbbyyk...', '...kbbyyk...', 'k..kbbbbk..k',
+      'kk.kbgbbk.kk', 'k..kgggbk..k', '...kggggk...', '...kkkkkk...', '............', '............'] },
+    '/atajos': { tile: T.lilac, p: { k: K, w: W, s: '#c3cad8', p: '#ff71ce' }, r: [
+      '............', '............', 'kkkkkkkkkkkk', 'kssssssssssk', 'kswswpswswsk', 'kssssssssssk',
+      'kwswswswswsk', 'kssssssssssk', 'ksswwwwwwssk', 'kssssssssssk', 'kkkkkkkkkkkk', '............'] },
     '/paletas': { tile: T.pink, p: { k: K, t: '#f4c27a', r: '#ff4d5e', b: '#2f8cff', y: '#ffd400', g: '#2ec27e' }, r: [
       '...kkkkkk...', '.kkttttttkk.', 'kttrrttbbttk', 'kttrrttbbttk', 'kttttttttttk', 'ktyyttttggtk',
       'ktyyttttggtk', '.kttttttttk.', '..kkkkkkkk..', '............', '............', '............'], shift: 1 },

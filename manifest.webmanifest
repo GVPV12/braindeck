@@ -1,0 +1,15 @@
+{
+  "name": "BrainDeck",
+  "short_name": "BrainDeck",
+  "description": "Herramientas para crear y aprender, todo en tu navegador.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "es",
+  "icons": [
+    { "src": "img/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "img/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

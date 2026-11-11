@@ -26,6 +26,8 @@ Herramientas para artistas, autodidactas y creativos, todo dentro de tu navegado
 - [Empezar](#empezar)
 - [Inteligencia artificial](#inteligencia-artificial)
 - [Privacidad](#privacidad)
+- [Seguridad](#seguridad)
+- [Pruebas](#pruebas)
 - [Arquitectura](#arquitectura)
 - [Añadir una herramienta](#añadir-una-herramienta)
 - [Créditos](#créditos)
@@ -63,6 +65,7 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 |---|---|---|
 | Marca de agua | `#/marca-agua` | Marcas en lote con metadatos de autor (XMP, EXIF, PNG iTXt) y señal de exclusión de entrenamiento de IA. |
 | Convertir y redimensionar | `#/convertir` | PNG, JPG, WebP y AVIF en lote, con reescalado de alta calidad. |
+| Comprimir imágenes | `#/comprimir` | Por calidad o a un peso exacto en KB, en lote, con comparador antes/después. Elimina los metadatos ocultos (EXIF, GPS). |
 | Quitar fondo | `#/quitar-fondo` | Segmentación con IA en el navegador: PNG transparente, fondo de color o sticker. |
 | Generador de paletas | `#/paletas` | Desde un color, una foto o una palabra. Exporta a Procreate, Adobe (`.ase`), GIMP/Krita (`.gpl`), Blender y CSS. |
 | Ideas para crear | `#/ideas` | Ideas por formato (ilustración, post, 3D, cómic…) a partir de semillas: tema, vibe, estética, color, animal o imagen. |
@@ -78,6 +81,7 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 | Descargar videos | `#/descargar-video` | Genera el comando exacto de [yt-dlp](https://github.com/yt-dlp/yt-dlp) para la calidad y el formato elegidos, sin webs de descarga inseguras. |
 | Generar subtítulos | `#/subtitulos` | SRT y VTT con Whisper en el navegador, editables y traducibles con IA. |
 | Generador de QR | `#/qr` | Enlaces, WiFi, contacto o WhatsApp, con estilo de puntos, colores, degradado y logo. PNG y SVG. |
+| Buscador de atajos | `#/atajos` | Atajos de Windows, macOS, Linux, terminal, navegador, VS Code, Photoshop, Krita, Blender, Figma, Procreate, Docs, Excel y YouTube. Se adapta a Ctrl o ⌘ y guarda favoritos. |
 
 ### Dinero
 
@@ -108,7 +112,9 @@ npx serve .            # o: python -m http.server
 
 También funciona con doble clic en `index.html`. Aun así, se recomienda servirlo por HTTP: los modelos de IA solo se guardan en caché en `http(s)://`.
 
-**Publicar:** en GitHub Pages, Netlify o Vercel, tal cual, sin configuración.
+**Publicar:** en GitHub Pages, Netlify o Vercel, tal cual, sin configuración. En Netlify, el archivo `_headers` añade las cabeceras de seguridad.
+
+**Instalar como app:** en Chrome o Edge, el botón "Instalar" de la barra de direcciones. Tras la primera visita, BrainDeck abre también sin conexión (las herramientas que usan internet, como la radio o la IA, necesitan red).
 
 > La primera vez se necesita conexión para cargar librerías y modelos desde CDN.
 
@@ -126,23 +132,54 @@ La IA es opcional y tiene tres niveles:
 
 - No hay servidor, analítica ni cuentas.
 - Imágenes, PDFs, audios y notas se procesan en el navegador.
-- Los datos viven en `localStorage`. Desde **Ajustes → Importar y exportar datos** puedes:
+- Los datos viven en tu navegador: `localStorage` para lo pequeño e IndexedDB para lo grande o cuando `localStorage` se llena. BrainDeck pide al navegador que no los borre automáticamente. Desde **Ajustes → Importar y exportar datos** puedes:
   - elegir qué grupos guardar (notas, planes, tests, retos, paletas, ahorro…);
+  - **cifrar la copia con contraseña** (AES-256-GCM, clave derivada con PBKDF2-SHA256 y 310.000 iteraciones, con Web Crypto);
   - ver qué trae un archivo antes de importarlo;
   - **combinarlo** con lo que ya tienes, sin duplicados, o **reemplazarlo**.
-- La API key nunca se exporta.
+- La API key nunca se exporta. Puedes guardarla en el navegador o usarla **solo durante la sesión** (se olvida al cerrar la pestaña y nunca se escribe en disco).
+- **Servicios de terceros**, solo cuando los usas:
+  - Radio: [SomaFM](https://somafm.com/) y [Radio Browser](https://www.radio-browser.info/) (y la emisora elegida) ven tu IP.
+  - Gesture drawing: Wikimedia Commons. Libro → test: noembed.com para los títulos de videos.
+  - IA: los modelos se descargan de Hugging Face; Claude solo recibe lo que envías a `api.anthropic.com`.
+  - Librerías: cdnjs y jsDelivr; las fuentes, Google Fonts.
+
+## Seguridad
+
+- **Content Security Policy** (`_headers`): solo se ejecutan scripts propios y de cdnjs/jsDelivr; ningún script en línea, sin `eval`, sin incrustar la app en otras webs (`frame-ancestors 'none'`).
+- **Subresource Integrity:** cada librería de CDN se comprueba con su huella SHA-384; si el CDN la modificara, el navegador no la ejecuta.
+- Cabeceras `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` (solo micrófono, para el coach de inglés), `Cross-Origin-Opener-Policy` y HSTS.
+- Las copias importadas se validan (tamaño, formato y nombres de clave) antes de tocar tus datos.
+- El comando de yt-dlp se genera con la URL entre comillas simples y sin comillas internas, para que no pueda inyectar órdenes.
+
+## Pruebas
+
+```bash
+npm install
+npx playwright install chromium
+npm run lint        # ESLint: errores reales, sin reglas de estilo
+npm test            # abre cada herramienta en escritorio, laptop y móvil y falla si hay errores de JavaScript
+npm run test:i18n   # lista los textos que siguen en español con la interfaz en inglés
+```
+
+GitHub Actions ejecuta lo mismo en cada push (`.github/workflows/ci.yml`).
 
 ## Arquitectura
 
 ```
 braindeck/
-├── index.html        Shell, menú y carga de scripts
-├── css/app.css       Temas (neo, cosmos, frost) y componentes
-├── img/              Logo y banners del inicio
+├── index.html            Shell, menú y carga de scripts
+├── sw.js                 Service worker (sin conexión e instalable)
+├── manifest.webmanifest  Datos de la app instalable
+├── _headers              Cabeceras de seguridad (Netlify)
+├── css/app.css           Temas (paper, neo, cosmos, frost) y componentes
+├── img/                  Logo, icono y banners del inicio
+├── tests/                Pruebas con Playwright
 └── js/
-    ├── core.js       Router por hash, almacenamiento, UI, IA y categorías
-    ├── i18n.js       Traducción de la interfaz al inglés
-    └── *.js          Una herramienta por archivo
+    ├── boot.js           Aplica tema e idioma antes de pintar
+    ├── core.js           Router, almacenamiento, cifrado, UI, IA y categorías
+    ├── i18n.js           Traducción de la interfaz al inglés
+    └── *.js              Una herramienta por archivo
 ```
 
 - **Sin build:** scripts clásicos que funcionan incluso desde `file://`.

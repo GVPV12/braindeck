@@ -8,14 +8,103 @@ const BD = window.BD = (() => {
   const today = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
   // ---------- almacenamiento ----------
+  // localStorage para lo pequeño (síncrono y rápido). Lo grande (> 256 KB) o lo que ya no cabe va a IndexedDB,
+  // que tiene mucho más espacio; se precarga en memoria al abrir la app, así que la API sigue siendo síncrona.
+  const BIG = 256 * 1024;
+  const big = new Map(); // clave → JSON de lo guardado en IndexedDB
+  const idb = (() => {
+    let db = null;
+    const open = () => db || (db = new Promise((ok, ko) => {
+      if (typeof indexedDB === 'undefined') return ko(new Error('sin IndexedDB'));
+      const r = indexedDB.open('bd-data', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
+    }));
+    const run = (mode, fn) => open().then(d => new Promise((ok, ko) => { const t = d.transaction('kv', mode), q = fn(t.objectStore('kv')); t.oncomplete = () => ok(q && q.result); t.onerror = () => ko(t.error); }));
+    return {
+      async load() {
+        const d = await open();
+        await new Promise((ok, ko) => { const t = d.transaction('kv'), s = t.objectStore('kv'), c = s.openCursor();
+          c.onsuccess = () => { const cur = c.result; if (cur) { big.set(cur.key, cur.value); cur.continue(); } }; t.oncomplete = ok; t.onerror = () => ko(t.error); });
+      },
+      put: (k, v) => run('readwrite', s => s.put(v, k)).catch(e => console.warn('IndexedDB', e)),
+      del: k => run('readwrite', s => s.delete(k)).catch(() => {}),
+    };
+  })();
+  // Se espera (máx. 2 s) antes de pintar la primera pantalla
+  const storeReady = Promise.race([idb.load().catch(() => {}), new Promise(r => setTimeout(r, 2000))]);
+  const toBig = (k, json) => { big.set(k, json); idb.put(k, json); try { localStorage.removeItem('bd:' + k); } catch {} return true; };
   const store = {
-    get(k, d) { try { const v = localStorage.getItem('bd:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-    set(k, v) { try { localStorage.setItem('bd:' + k, JSON.stringify(v)); return true; } catch { toast('No se pudo guardar (almacenamiento lleno o bloqueado)', 'bad'); return false; } },
-    del(k) { try { localStorage.removeItem('bd:' + k); } catch {} },
-    keys() { try { return Object.keys(localStorage).filter(k => k.startsWith('bd:')).map(k => k.slice(3)); } catch { return []; } },
+    get(k, d) {
+      try { const v = big.has(k) ? big.get(k) : localStorage.getItem('bd:' + k); return v == null ? d : JSON.parse(v); } catch { return d; }
+    },
+    set(k, v) {
+      let json;
+      try { json = JSON.stringify(v); } catch { return false; }
+      if (big.has(k) || json.length > BIG) return toBig(k, json);
+      try { localStorage.setItem('bd:' + k, json); return true; }
+      catch {
+        // localStorage lleno (~5 MB) o bloqueado: se guarda en IndexedDB en su lugar
+        if (typeof indexedDB !== 'undefined') return toBig(k, json);
+        toast(L('No se pudo guardar: el almacenamiento está lleno o bloqueado. Exporta una copia en Ajustes.', 'Could not save: storage is full or blocked. Export a backup in Settings.'), 'bad');
+        return false;
+      }
+    },
+    del(k) { try { localStorage.removeItem('bd:' + k); } catch {} if (big.delete(k)) idb.del(k); },
+    keys() {
+      let ls = [];
+      try { ls = Object.keys(localStorage).filter(k => k.startsWith('bd:')).map(k => k.slice(3)); } catch {}
+      return [...new Set([...ls, ...big.keys()])];
+    },
+    // Uso aproximado en bytes: { local, idb }
+    usage() {
+      let local = 0;
+      try { Object.keys(localStorage).filter(k => k.startsWith('bd:')).forEach(k => local += (k.length + (localStorage.getItem(k) || '').length) * 2); } catch {}
+      let db = 0; big.forEach((v, k) => db += (k.length + v.length) * 2);
+      return { local, idb: db };
+    },
   };
-  const settings = () => Object.assign({ theme: 'paper', lang: 'es', apiKey: '', model: 'claude-sonnet-5-5', author: '', currency: 'USD' }, store.get('settings', {}));
-  const saveSettings = patch => { store.set('settings', Object.assign(settings(), patch)); };
+  // Pide al navegador que no borre los datos por falta de espacio (si lo permite, sin preguntar nada)
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(() => {}); } catch {}
+
+  // API key: "guardar" (en este navegador) o "sesión" (solo hasta cerrar la pestaña; nunca se escribe en disco)
+  const sess = {
+    get() { try { return sessionStorage.getItem('bd:key') || ''; } catch { return ''; } },
+    set(v) { try { v ? sessionStorage.setItem('bd:key', v) : sessionStorage.removeItem('bd:key'); } catch {} },
+  };
+  function settings() {
+    const saved = store.get('settings', {}) || {};
+    const s = Object.assign({ theme: 'paper', lang: 'es', apiKey: '', model: 'claude-sonnet-5-5', author: '', currency: 'USD' }, saved);
+    if (!s.keyMode) s.keyMode = s.apiKey ? 'save' : 'session'; // quien ya tenía una key guardada la conserva
+    if (s.keyMode === 'session') s.apiKey = sess.get();
+    return s;
+  }
+  function saveSettings(patch) {
+    const s = Object.assign(settings(), patch);
+    if (s.keyMode === 'session') { sess.set(s.apiKey); s.apiKey = ''; } else sess.set('');
+    store.set('settings', s);
+  }
+
+  // ---------- cifrado de copias de seguridad (AES-GCM 256 + PBKDF2, con Web Crypto; sin librerías) ----------
+  const b64 = buf => { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(s); };
+  const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  async function deriveKey(pass, salt, iter) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  }
+  const vault = {
+    available: () => !!(window.crypto && crypto.subtle),
+    async lock(obj, pass) {
+      const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)), iter = 310000;
+      const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await deriveKey(pass, salt, iter), new TextEncoder().encode(JSON.stringify(obj)));
+      return { alg: 'AES-GCM-256/PBKDF2-SHA256', iter, salt: b64(salt), iv: b64(iv), data: b64(data) };
+    },
+    async unlock(enc, pass) {
+      const key = await deriveKey(pass, unb64(enc.salt), enc.iter);
+      try { return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(enc.iv) }, key, unb64(enc.data)))); }
+      catch { throw new Error(L('Contraseña incorrecta o archivo dañado', 'Wrong password or damaged file')); }
+    },
+  };
 
   // ---------- idioma ----------
   // L('texto', 'text'): el código nuevo elige el texto en línea; la interfaz antigua se traduce con el diccionario de i18n.js
@@ -160,9 +249,19 @@ const BD = window.BD = (() => {
 
   // ---------- librerías externas bajo demanda ----------
   const loaded = {};
+  // Integridad (SRI): el navegador comprueba la huella de cada librería y no la ejecuta si el CDN la cambió
+  const SRI = {
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js': 'sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD',
+    'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js': 'sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG',
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js': 'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e',
+    'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js': 'sha384-GJqSu7vueQ9qN0E9yLPb3Wtpd7OrgK8KmYzC8T1IysG1bcvxvIO4qtYR/D3A991F',
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js': 'sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI',
+    'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js': 'sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1',
+  };
   function loadScript(src) {
     if (!loaded[src]) loaded[src] = new Promise((ok, ko) => {
       const s = document.createElement('script');
+      if (SRI[src]) { s.integrity = SRI[src]; s.crossOrigin = 'anonymous'; }
       s.src = src; s.onload = ok; s.onerror = () => { delete loaded[src]; ko(new Error('No se pudo cargar ' + src + ' (¿sin conexión?)')); };
       document.head.appendChild(s);
     });
@@ -392,8 +491,13 @@ const BD = window.BD = (() => {
     location.reload();
   }
 
-  function init() {
+  async function init() {
+    await storeReady;
     applyTheme(settings().theme);
+    const skip = $('#skipLink');
+    if (skip) { skip.textContent = L('Saltar al contenido', 'Skip to content'); skip.onclick = () => { const v = $('#view'); v.focus(); v.scrollIntoView(); }; }
+    // App instalable y usable sin conexión (solo en http/https; abierta como archivo no hay service worker)
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
     document.documentElement.lang = lang();
     window.dispatchEvent(new CustomEvent('bd:lang'));
     buildNav();
@@ -420,7 +524,7 @@ const BD = window.BD = (() => {
   const num = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : 0; };
 
   return {
-    $, $$, esc, uid, today, store, settings, saveSettings, route, tool, tools, go, render, win, toast, copy, seg, dropzone,
+    $, $$, esc, uid, today, store, storeReady, vault, settings, saveSettings, route, tool, tools, go, render, win, toast, copy, seg, dropzone,
     fmtBytes, download, readDataURL, readText, readBuffer, loadImage, canvasBlob, baseName, loadScript, LIB, zipAndDownload,
     cssVar, setupTransformers, stats, track, hasAI, ai, imageBlock, localAI, anyAI, log, THEMES, setTheme, money, num, icon,
     lang, L, locale, setLang, layout, saveLayout, buildNav, tr: s => s, // tr lo reemplaza i18n.js

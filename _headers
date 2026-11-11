@@ -1,0 +1,14 @@
+# Cabeceras de seguridad para Netlify (también las respetan Cloudflare Pages).
+# CSP: solo se ejecutan scripts propios y de los dos CDN usados (cdnjs y jsDelivr); ningún script en línea.
+# connect/img/media aceptan https: porque la radio, Wikimedia, los modelos de IA y los enlaces que pegas pueden venir de cualquier servidor.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' data: blob: https:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), geolocation=(), payment=(), usb=(), browsing-topics=(), microphone=(self)
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+/sw.js
+  Cache-Control: no-cache

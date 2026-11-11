@@ -1,0 +1,8 @@
+# BrainDeck es estático: no hay nada que compilar. package.json solo existe para las pruebas y el lint.
+[build]
+  publish = "."
+  command = "echo 'Sitio estático, sin compilación'"
+
+[build.environment]
+  # evita que Netlify instale las herramientas de pruebas en cada despliegue
+  NPM_FLAGS = "--omit=dev"
