@@ -155,13 +155,20 @@
   }
 
   // ---------- salida ----------
-  function toMarkdown(n) {
+  function toMarkdown(n, transcript = true) {
     const sec = (h, arr, f = x => '- ' + x) => arr && arr.length ? `\n## ${h}\n${arr.map(f).join('\n')}\n` : '';
     return `# ${n.title}\n\n**${L('Tema', 'Topic')}:** ${n.topic}\n\n## ${L('Resumen', 'Summary')}\n${n.summary}\n` +
       (n.important ? `\n## ${L('Texto importante', 'Key text')}\n${n.important}\n` : '') +
       sec(L('Conceptos clave', 'Key concepts'), n.concepts) + sec(L('Tareas', 'Tasks'), n.tasks, x => '- [ ] ' + x) +
       sec(L('Definiciones', 'Definitions'), n.definitions, d => `- **${d.term}:** ${d.def}`) + sec(L('Citas', 'Quotes'), n.quotes, q => '> ' + q) +
-      sec(L('Preguntas', 'Questions'), n.questions) + `\n## ${L('Transcripción', 'Transcript')}\n${n.transcript || ''}\n`;
+      sec(L('Preguntas', 'Questions'), n.questions) + (transcript ? `\n## ${L('Transcripción', 'Transcript')}\n${n.transcript || ''}\n` : '');
+  }
+  // Lleva una nota de capturas a Notas rápidas (pestaña Estudio) y la abre allí
+  function toQuick(n) {
+    if (!n || !BD.qnotes) return;
+    BD.qnotes.add({ title: n.title || L('Notas de capturas', 'Screenshot notes'), text: toMarkdown(n, false).replace(/^# .*\n+/, '').trim(), tab: 'estudio' });
+    toast(L('Enviada a Notas rápidas 📒', 'Sent to Quick notes 📒'));
+    location.hash = '#/notas-rapidas';
   }
   function renderNotes(n) {
     const list = (h, arr, f = x => esc(x)) => arr && arr.length ? `<h3>${h}</h3><ul>${arr.map(x => `<li>${f(x)}</li>`).join('')}</ul>` : '';
@@ -267,6 +274,7 @@
         out.innerHTML = renderNotes(n) + `
           <div class="row" style="margin-top:16px">
             ${unsaved ? `<button class="btn primary sm" data-a="save">${L('Guardar', 'Save')}</button>` : ''}
+            <button class="btn ghost sm" data-a="quick">📒 ${L('Llevar a Notas rápidas', 'Send to Quick notes')}</button>
             <button class="btn ghost sm" data-a="copy">${L('Copiar Markdown', 'Copy Markdown')}</button>
             <button class="btn ghost sm" data-a="md">${L('Descargar .md', 'Download .md')}</button>
             <a class="btn ghost sm" href="#/test" data-a="test">${L('Hacer test con esto', 'Make a test from this')}</a>
@@ -274,6 +282,7 @@
         out.onclick = e => {
           const a = e.target.closest('[data-a]')?.dataset.a;
           if (a === 'save') { const all = store.get('notes', []); all.unshift(n); store.set('notes', all.slice(0, 100)); toast(L('Notas guardadas', 'Notes saved')); paintSaved(); e.target.remove(); }
+          if (a === 'quick') toQuick(n);
           if (a === 'copy') BD.copy(toMarkdown(n));
           if (a === 'md') BD.download(new Blob([toMarkdown(n)], { type: 'text/markdown' }), (n.title || 'notas').replace(/[^\wáéíóúñ -]/gi, '').slice(0, 40) + '.md');
           if (a === 'test') store.set('study:pending', { title: n.title, text: n.important || n.transcript });
@@ -284,11 +293,14 @@
         $('#nSaved', body).innerHTML = all.length ? all.map(n => `
           <div class="card row"><b translate="no">${esc(n.title)}</b><span class="chip" translate="no">${esc(n.topic)}</span><span class="spacer"></span>
           <span class="muted small">${new Date(n.at).toLocaleDateString(BD.locale())}</span>
-          <button class="btn ghost sm" data-open="${n.id}">${L('Abrir', 'Open')}</button><button class="icon-btn" data-del="${n.id}">🗑</button></div>`).join('')
+          <button class="btn ghost sm" data-open="${n.id}">${L('Abrir', 'Open')}</button>
+          <button class="icon-btn" data-quick="${n.id}" title="${L('Llevar a Notas rápidas', 'Send to Quick notes')}" aria-label="${L('Llevar a Notas rápidas', 'Send to Quick notes')}">📒</button>
+          <button class="icon-btn" data-del="${n.id}">🗑</button></div>`).join('')
           : `<p class="muted">${L('Aún no guardas notas.', 'No saved notes yet.')}</p>`;
       }
       $('#nSaved', body).onclick = e => {
-        const o = e.target.closest('[data-open]'), d = e.target.closest('[data-del]');
+        const o = e.target.closest('[data-open]'), d = e.target.closest('[data-del]'), q = e.target.closest('[data-quick]');
+        if (q) return toQuick(store.get('notes', []).find(n => n.id === q.dataset.quick));
         if (o) { showNote(store.get('notes', []).find(n => n.id === o.dataset.open)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
         if (d) { store.set('notes', store.get('notes', []).filter(n => n.id !== d.dataset.del)); paintSaved(); }
       };

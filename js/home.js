@@ -16,19 +16,19 @@
     ['alissa-kennedy-2uXqQjXBXzA-unsplash', 'Alissa Kennedy', 'Margarita con pétalos arcoíris'],
   ];
   const CAT = `<svg class="hero-cat" viewBox="0 0 120 66" aria-hidden="true">
-    <path d="M12 66 C12 34 20 22 30 17 L25 0 L47 12 C55 9.5 65 9.5 73 12 L95 0 L90 17 C100 22 108 34 108 66 Z" fill="#141414"/>
-    <g class="eyes"><circle cx="44" cy="42" r="9.5" fill="#f3ecd2"/><circle cx="76" cy="42" r="9.5" fill="#f3ecd2"/>
-    <circle cx="44" cy="43" r="6.5" fill="#141414"/><circle cx="76" cy="43" r="6.5" fill="#141414"/>
+    <path class="cat-body" d="M12 66 C12 34 20 22 30 17 L25 0 L47 12 C55 9.5 65 9.5 73 12 L95 0 L90 17 C100 22 108 34 108 66 Z"/>
+    <g class="eyes"><circle class="cat-eye" cx="44" cy="42" r="9.5"/><circle class="cat-eye" cx="76" cy="42" r="9.5"/>
+    <circle class="cat-pupil" cx="44" cy="43" r="6.5"/><circle class="cat-pupil" cx="76" cy="43" r="6.5"/>
     <circle cx="46.5" cy="40" r="2" fill="#fff"/><circle cx="78.5" cy="40" r="2" fill="#fff"/></g></svg>`;
+  BD.CAT = CAT;
 
-  BD.route('/', {
-    title: '',
+  BD.route('/herramientas', {
+    title: L('Todas las herramientas', 'All tools'),
     render(view) {
-      const p = BD.progress ? BD.progress.summary() : null;
       const card = t => `
-        <a class="tool-card" href="${t.external || '#' + t.path}" ${t.external ? 'target="_blank" rel="noopener"' : ''} style="--c1:${t.colors[0]};--c2:${t.colors[1]}">
+        <a class="tool-card" href="${t.external || '#' + t.path}" ${t.external ? `target="_blank" rel="noopener" data-track="${t.path}"` : ''} ${t.radio ? 'data-radio' : ''} style="--c1:${t.colors[0]};--c2:${t.colors[1]}">
           <span class="go">→</span>
-          <div class="orb"><span>${t.icon}</span></div>
+          ${BD.hasAppIcon(t.path) ? BD.appIcon(t.path, 'big') : `<div class="orb"><span>${t.icon}</span></div>`}
           <h3>${esc(t.title)}</h3>
           <p>${esc(t.desc)}</p>
         </a>`;
@@ -43,15 +43,9 @@
               <span class="hero-credit" id="heroCredit"></span>
             </div>
           </div>
-          <h1>${L('Bienvenido a BrainDeck', 'Welcome to BrainDeck')}</h1>
-          <p>${L('BrainDeck es tu mesa de trabajo para crear y aprender: calcula comisiones, protege tus imágenes, convierte capturas en notas, planifica lo que estudias y ahorra con un plan. Todo corre en tu navegador.',
-            'BrainDeck is your desk for creating and learning: work out commissions, protect your images, turn screenshots into notes, plan what you study and save with a plan. Everything runs in your browser.')}</p>
-          ${p ? `<div class="grid g4 hero-stats">
-            <div class="card stat" data-tip="${L('Días seguidos en los que marcaste una sesión de tu plan de estudios o terminaste un test.', 'Days in a row in which you ticked a study-plan session or finished a test.')}"><b>${p.streak}🔥</b><span>${L('días de racha', 'day streak')}</span></div>
-            <a class="card stat" href="#/plan" style="text-decoration:none;color:inherit" data-tip="${L('Sesiones de tus planes de estudio programadas para hoy, y cuántas ya marcaste como hechas.', 'Study-plan sessions scheduled for today, and how many you already ticked as done.')}"><b>${p.todayDone}<small class="muted">/${p.todayTotal}</small></b><span>${L('sesiones hoy', 'sessions today')}</span></a>
-            <a class="card stat" href="#/plan" style="text-decoration:none;color:inherit" data-tip="${L('La siguiente sesión sin marcar de cualquiera de tus planes de estudio.', 'The next unticked session from any of your study plans.')}"><b>${p.next ? new Date(p.next.date + 'T12:00').toLocaleDateString(BD.locale(), { weekday: 'short', day: 'numeric' }) + ' · ' + String(Math.floor(p.next.start / 60)).padStart(2, '0') + ':' + String(p.next.start % 60).padStart(2, '0') : '—'}</b><span>${L('próxima sesión', 'next session')}</span></a>
-            <a class="card stat" href="#/test/repaso" style="text-decoration:none;color:inherit" data-tip="${L('Preguntas que fallaste en Libro a test y que ya toca repasar (vuelven a los 1, 3, 7, 14 y 30 días).', 'Questions you missed in Book to test that are due for review (they come back after 1, 3, 7, 14 and 30 days).')}"><b>${p.due}</b><span>${L('repasos pendientes', 'reviews due')}</span></a>
-          </div>` : ''}
+          <h1>${L('Todas las herramientas', 'All tools')}</h1>
+          <p>${L('Tu mesa de trabajo para crear y aprender: calcula comisiones, protege tus imágenes, convierte capturas en notas, planifica lo que estudias y ahorra con un plan. Todo corre en tu navegador.',
+            'Your desk for creating and learning: work out commissions, protect your images, turn screenshots into notes, plan what you study and save with a plan. Everything runs in your browser.')}</p>
         </section>
         <div class="section-title"><h2>${L('Herramientas', 'Tools')}</h2><span class="muted small">${main.length} apps</span><span class="spacer"></span>
           <button class="btn ghost sm" id="orgReset" hidden>${L('Restablecer orden', 'Reset order')}</button>
@@ -75,7 +69,7 @@
               <button class="icon-btn" data-cmove="${ci}:1" ${ci < lay.length - 1 ? '' : 'disabled'} title="${L('Bajar categoría', 'Move category down')}">↓</button>` : ''}</div>
             <div class="tool-grid" data-drop="${c.id}">${c.tools.map((t, ti) => organizing ? `
               <div class="tool-card org" draggable="true" data-path="${t.path}" style="--c1:${t.colors[0]};--c2:${t.colors[1]}">
-                <div class="orb"><span>${t.icon}</span></div><h3>${esc(t.title)}</h3>
+                ${BD.hasAppIcon(t.path) ? BD.appIcon(t.path, 'big') : `<div class="orb"><span>${t.icon}</span></div>`}<h3>${esc(t.title)}</h3>
                 <div class="org-ctl">
                   <button class="icon-btn" data-tmove="${t.path}:-1" ${ti ? '' : 'disabled'}>◀</button>
                   <select data-tcat="${t.path}">${lay.map(x => `<option value="${x.id}" ${x.id === c.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
@@ -197,7 +191,7 @@
         <h3>${L('Estilo', 'Style')}</h3>
         <p class="muted small">${L('El estilo que elijas se guarda en este navegador y se abre así la próxima vez.', 'The style you pick is saved in this browser and opens that way next time.')}</p>
         <div class="theme-pick" id="themes">
-          ${[['neo', L('Neo pixel (predeterminado)', 'Neo pixel (default)'), L('Neobrutalista, bordes gruesos, píxel', 'Neobrutalist, thick borders, pixel')], ['cosmos', 'Cosmos', L('Glass oscuro, orbes y brillo neón', 'Dark glass, orbs and neon glow')], ['frost', 'Frost', L('Foto desenfocada, minimal, tipografía bold', 'Blurred photo, minimal, bold type')]].map(([id, n, d]) => `
+          ${[['paper', L('Paper (predeterminado)', 'Paper (default)'), L('Papel cuadriculado, ventanas retro en blanco y negro', 'Grid paper, black & white retro windows')], ['neo', 'Neo pixel', L('Neobrutalista, bordes gruesos, píxel', 'Neobrutalist, thick borders, pixel')], ['cosmos', 'Cosmos', L('Glass oscuro, orbes y brillo neón', 'Dark glass, orbs and neon glow')], ['frost', 'Frost', L('Foto desenfocada, minimal, tipografía bold', 'Blurred photo, minimal, bold type')]].map(([id, n, d]) => `
             <button class="theme-opt ${s.theme === id ? 'on' : ''}" data-t="${id}">
               <div class="prev ${id}"></div><span class="t">${n}</span><span class="muted small" style="padding:0 6px">${d}</span>
             </button>`).join('')}
@@ -287,6 +281,8 @@
       // Cada grupo agrupa claves de almacenamiento (exactas o por prefijo "x:")
       const GROUPS = [
         ['notes', L('Notas de capturas', 'Screenshot notes'), ['notes', 'notes:']],
+        ['qnotes', L('Notas rápidas', 'Quick notes'), ['qnotes', 'qnotes:']],
+        ['stats', L('Estadísticas de uso, nivel e items', 'Usage stats, level & items'), ['stats']],
         ['plans', L('Planes de estudio', 'Study plans'), ['plans', 'plan:']],
         ['tests', L('Tests y repasos', 'Tests & reviews'), ['decks', 'progress', 'study:']],
         ['retos', L('Retos de 30 días', '30-day challenges'), ['challenges', 'reto:']],
@@ -295,8 +291,8 @@
         ['money', L('Ahorro y comisiones', 'Savings & commissions'), ['savings:', 'commission:']],
         ['decisions', 'Decision Log', ['decisions']],
         ['games', L('Minijuegos (récords y dibujos)', 'Mini games (records & drawings)'), ['games:']],
-        ['prefs', L('Preferencias de herramientas y orden del menú', 'Tool preferences & menu order'), ['wm:', 'conv:', 'vdl:', 'subs:', 'bg:', 'pdft:', 'qr:', 'layout', 'hero:', 'timer']],
-        ['settings', L('Ajustes (idioma, estilo, autor; sin API key)', 'Settings (language, style, author; no API key)'), ['settings']],
+        ['prefs', L('Preferencias de herramientas y orden del menú', 'Tool preferences & menu order'), ['wm:', 'conv:', 'vdl:', 'subs:', 'bg:', 'pdft:', 'qr:', 'layout', 'hero:', 'timer', 'radio', 'radio:']],
+        ['settings', L('Ajustes (idioma, estilo, autor, avatar; sin API key)', 'Settings (language, style, author, avatar; no API key)'), ['settings', 'profile']],
       ];
       const groupOf = k => (GROUPS.find(([, , ks]) => ks.some(p => p.endsWith(':') ? k.startsWith(p) : k === p)) || ['other'])[0];
       // "12 elementos" para listas; si no, nº de claves

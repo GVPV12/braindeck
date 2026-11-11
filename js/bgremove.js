@@ -11,8 +11,7 @@
   async function load(kind, onP) {
     if (cache[kind]) return cache[kind];
     const T = await import(BD.LIB.transformers);
-    T.env.allowLocalModels = false;
-    T.env.useBrowserCache = typeof caches !== 'undefined' && location.protocol !== 'file:';
+    BD.setupTransformers(T.env);
     const m = MODELS[kind], progress_callback = d => { if (d.status === 'progress' && d.total) onP(d.loaded / d.total); };
     const model = await T.AutoModel.from_pretrained(m.id, { ...(kind === 'general' ? { config: { model_type: 'custom' } } : {}), device: navigator.gpu ? 'webgpu' : 'wasm', dtype: 'fp32', progress_callback });
     const processor = await T.AutoProcessor.from_pretrained(m.id, m.proc ? { config: m.proc } : {});

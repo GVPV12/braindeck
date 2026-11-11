@@ -36,7 +36,9 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 
 - **Cada herramienta tiene su propio enlace** (`index.html#/ruta`) para compartirla directamente.
 - **Organizable:** se agrupan por categoría y puedes reordenarlas o moverlas de categoría arrastrando.
-- **Tres estilos visuales:** Neo pixel (neobrutalista), Cosmos (glass oscuro) y Frost (minimal).
+- **Inicio tipo dashboard:** ventanas con tu avatar, nivel y XP, stats estilo RPG, racha en corazones, datos de estudio, actividad diaria, apps más usadas, la data de cada herramienta y una bolsa de items pixel que se desbloquean según tu uso. Debajo, todas las herramientas como apps de un dispositivo. La vista clásica sigue en `#/herramientas`.
+- **Cuatro estilos visuales:** Paper (predeterminado: papel cuadriculado y ventanas retro en blanco y negro), Neo pixel (neobrutalista), Cosmos (glass oscuro) y Frost (minimal). El estilo elegido se recuerda en cada visita.
+- **Radio integrada** (herramienta de Estudio): reproductor abajo a la derecha que sigue sonando mientras usas las herramientas. Ruidos de colores y ambientes (biblioteca, lluvia, mar, chimenea, viento) generados en el navegador, más emisoras en vivo de lofi, vaporwave y ambient ([SomaFM](https://somafm.com/) y [Radio Browser](https://www.radio-browser.info/)), con modo aleatorio.
 - **Bilingüe:** español por defecto e inglés desde Ajustes.
 - **Responsive:** menú lateral en escritorio y barra inferior en móvil.
 
@@ -46,11 +48,13 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 
 | Herramienta | Ruta | Descripción |
 |---|---|---|
-| Capturas → notas | `#/notas` | OCR de capturas que separa el texto importante de la interfaz y lo convierte en notas. Modo local, IA local o Claude. |
+| Notas rápidas | `#/notas-rapidas` | Cuaderno de anillas estilo HyperCard con pestañas, búsqueda, notas fijadas y exportación a `.txt`. En "Todas" las notas se ven como apps. Se guarda solo. |
+| Capturas → notas | `#/notas` | OCR de capturas que separa el texto importante de la interfaz y lo convierte en notas, que puedes llevar a Notas rápidas. Modo local, IA local o Claude. |
 | Crear plan de estudios | `#/plan` | De una lista de temas, libros o videos a un plan de estudio y evaluación con calendario `.ics` a la hora exacta. |
 | Libro → test | `#/test` | Tests desde PDF, EPUB o TXT, con repaso espaciado (Leitner) y enlace para compartir. |
 | Reto de 30 días | `#/reto` | Una tarea diaria para dibujo, piano, 3D, animación, idiomas, programación, escritura o un curso desde tu plan de estudios. |
 | Coach de inglés hablado | `#/ingles` | Te grabas, Whisper transcribe y la IA corrige gramática, vocabulario, fluidez y posibles fallos de pronunciación. |
+| Radio para estudiar | `#/radio` | Ruidos de colores, lofi, vaporwave, ambientes y modo aleatorio. |
 | Temporizador de foco | `#/foco` | Acceso a [Focus Time Is Now](https://focustimeisnow.netlify.app/). |
 
 ### Imágenes y arte

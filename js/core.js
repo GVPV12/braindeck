@@ -14,7 +14,7 @@ const BD = window.BD = (() => {
     del(k) { try { localStorage.removeItem('bd:' + k); } catch {} },
     keys() { try { return Object.keys(localStorage).filter(k => k.startsWith('bd:')).map(k => k.slice(3)); } catch { return []; } },
   };
-  const settings = () => Object.assign({ theme: 'neo', lang: 'es', apiKey: '', model: 'claude-sonnet-5-5', author: '', currency: 'USD' }, store.get('settings', {}));
+  const settings = () => Object.assign({ theme: 'paper', lang: 'es', apiKey: '', model: 'claude-sonnet-5-5', author: '', currency: 'USD' }, store.get('settings', {}));
   const saveSettings = patch => { store.set('settings', Object.assign(settings(), patch)); };
 
   // ---------- idioma ----------
@@ -34,6 +34,19 @@ const BD = window.BD = (() => {
   // Herramienta = ruta + entrada en menús
   function tool(def) { tools.push(def); route(def.path, def); }
 
+  // ---------- estadísticas de uso (alimentan el dashboard de Inicio) ----------
+  // stats = { uses: {ruta: n}, last: {ruta: ms}, days: {fecha: n}, sdays: {fecha: 1 si estudiaste}, radio: { plays, min } }
+  const stats = () => Object.assign({ uses: {}, last: {}, days: {}, sdays: {}, radio: { plays: 0, min: 0 } }, store.get('stats', {}));
+  function track(path) {
+    const s = stats(), d = today(), t = tools.find(x => x.path === path);
+    s.uses[path] = (s.uses[path] || 0) + 1;
+    s.last[path] = Date.now();
+    s.days[d] = (s.days[d] || 0) + 1;
+    if (t && t.cat === 'estudio') s.sdays[d] = 1;
+    store.set('stats', s);
+  }
+  document.addEventListener('click', e => { const a = e.target.closest('[data-track]'); if (a) track(a.dataset.track); });
+
   let cleanup = null;
   function render() {
     const path = (location.hash.replace(/^#/, '') || '/').split('?')[0] || '/';
@@ -48,6 +61,7 @@ const BD = window.BD = (() => {
     view.innerHTML = '';
     view.classList.remove('enter'); void view.offsetWidth; view.classList.add('enter');
     const def = match.def;
+    if (tools.includes(def) && !def.radio) track(def.path);
     document.title = def.title ? `${BD.tr(def.title)} · BrainDeck` : 'BrainDeck';
     try {
       const res = def.render(view, params);
@@ -169,6 +183,28 @@ const BD = window.BD = (() => {
     files.forEach(f => zip.file(f.name, f.blob));
     download(await zip.generateAsync({ type: 'blob' }), name);
   }
+  // Modelos de IA (Transformers.js): se descargan una sola vez y quedan guardados.
+  // En http(s) usa la Cache API del navegador; abierto como archivo (file://) esa API no existe, así que se guardan en IndexedDB.
+  const modelCache = (() => {
+    let db;
+    const open = () => db || (db = new Promise((ok, ko) => {
+      const r = indexedDB.open('bd-models', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('f');
+      r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
+    }));
+    const tx = async (mode, fn) => { const d = await open(); return new Promise((ok, ko) => { const t = d.transaction('f', mode), q = fn(t.objectStore('f')); t.oncomplete = () => ok(q.result); t.onerror = () => ko(t.error); }); };
+    return {
+      async match(key) { try { const v = await tx('readonly', s => s.get(String(key))); return v ? new Response(v.body, { headers: v.headers }) : undefined; } catch { return undefined; } },
+      async put(key, res) { try { const body = await res.arrayBuffer(); await tx('readwrite', s => s.put({ body, headers: [...res.headers] }, String(key))); } catch {} },
+    };
+  })();
+  function setupTransformers(env) {
+    env.allowLocalModels = false;
+    const web = typeof caches !== 'undefined' && location.protocol !== 'file:';
+    env.useBrowserCache = web;
+    env.useCustomCache = !web && typeof indexedDB !== 'undefined';
+    if (env.useCustomCache) env.customCache = modelCache;
+  }
   // Colores leídos del tema actual (para gráficas)
   const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
@@ -264,10 +300,11 @@ const BD = window.BD = (() => {
   }
 
   // ---------- temas ----------
-  const THEMES = [['neo', 'Neo pixel'], ['cosmos', 'Cosmos'], ['frost', 'Frost']];
+  const THEMES = [['paper', 'Paper'], ['neo', 'Neo pixel'], ['cosmos', 'Cosmos'], ['frost', 'Frost']];
   function applyTheme(t) {
+    if (!THEMES.some(x => x[0] === t)) t = 'paper';
     document.documentElement.dataset.theme = t;
-    $('meta[name=theme-color]').content = { cosmos: '#090614', neo: '#dcf34b', frost: '#26303a' }[t] || '#dcf34b';
+    $('meta[name=theme-color]').content = { cosmos: '#090614', neo: '#dcf34b', frost: '#26303a', paper: '#ffffff' }[t] || '#ffffff';
     window.dispatchEvent(new CustomEvent('bd:theme'));
   }
   function setTheme(t) { saveSettings({ theme: t }); applyTheme(t); }
@@ -319,7 +356,8 @@ const BD = window.BD = (() => {
     ids.forEach(id => cats.includes(id) || cats.push(id));
     const main = tools.filter(t => !t.hidden && t.group !== 'extra'), placed = new Set(), by = {};
     cats.forEach(id => by[id] = ((saved.tools || {})[id] || []).map(p => main.find(t => t.path === p)).filter(t => t && !placed.has(t.path) && placed.add(t.path)));
-    main.filter(t => !placed.has(t.path)).forEach(t => by[by[t.cat] ? t.cat : cats[0]].push(t));
+    // las que aún no tienen sitio guardado van al final de su categoría (o al principio si son `first`)
+    main.filter(t => !placed.has(t.path)).forEach(t => { const a = by[by[t.cat] ? t.cat : cats[0]]; t.first ? a.unshift(t) : a.push(t); });
     const names = Object.fromEntries(CATS());
     return cats.map(id => ({ id, name: names[id], tools: by[id] }));
   }
@@ -328,21 +366,24 @@ const BD = window.BD = (() => {
   // ---------- navegación ----------
   function buildNav() {
     const item = (href, nav, ic, label) => `<a class="nav-item" href="#${href}" data-nav="${nav}"><span class="ni">${ic}</span><span>${label}</span></a>`;
+    const ic = t => (BD.appIcon && BD.appIcon(t.path)) || t.icon;
     const main = tools.filter(t => !t.hidden);
+    const link = t => t.external
+      ? `<a class="nav-item" href="${t.external}" target="_blank" rel="noopener" data-track="${t.path}"><span class="ni">${ic(t)}</span><span>${t.short || t.title} ↗</span></a>`
+      : t.radio ? `<a class="nav-item" href="#${t.path}" data-radio><span class="ni">${ic(t)}</span><span>${t.short || t.title}</span></a>`
+      : item(t.path, t.path, ic(t), t.short || t.title);
     $('#sideNav').innerHTML =
       item('/', '/', icon('home'), 'Inicio') +
+      item('/herramientas', '/herramientas', (BD.appIcon && BD.appIcon('/herramientas')) || icon('gamepad'), L('Todas las herramientas', 'All tools')) +
       `<a class="nav-item" href="https://grevaleart.com/" target="_blank" rel="noopener"><span class="ni">${icon('palette')}</span><span>${L('Mi portafolio', 'My portfolio')} ↗</span></a>` +
-      layout().filter(c => c.tools.length).map(c => `<div class="nav-label">${esc(c.name)}</div>` +
-        c.tools.map(t => t.external
-          ? `<a class="nav-item" href="${t.external}" target="_blank" rel="noopener"><span class="ni">${t.icon}</span><span>${t.short || t.title} ↗</span></a>`
-          : item(t.path, t.path, t.icon, t.short || t.title)).join('')).join('') +
+      layout().filter(c => c.tools.length).map(c => `<div class="nav-label">${esc(c.name)}</div>` + c.tools.map(link).join('')).join('') +
       `<div class="nav-label">Más</div>` +
-      main.filter(t => t.group === 'extra').map(t => item(t.path, t.path, t.icon, t.short || t.title)).join('') +
-      item('/ajustes', '/ajustes', icon('settings'), 'Ajustes') +
+      main.filter(t => t.group === 'extra').map(link).join('') +
+      item('/ajustes', '/ajustes', (BD.appIcon && BD.appIcon('/ajustes')) || icon('settings'), 'Ajustes') +
       item('/findme', '/findme', icon('link'), L('Estoy en', 'Find me on'));
     $('#bottomNav').innerHTML =
-      item('/', '/', icon('home'), 'Inicio') + item('/plan', '/plan', icon('calendar'), 'Plan') +
-      item('/juegos', '/juegos', icon('gamepad'), 'Juegos') + item('/ajustes', '/ajustes', icon('settings'), 'Ajustes');
+      item('/', '/', icon('home'), 'Inicio') + item('/herramientas', '/herramientas', icon('gamepad'), 'Apps') +
+      item('/plan', '/plan', icon('calendar'), 'Plan') + item('/ajustes', '/ajustes', icon('settings'), 'Ajustes');
   }
   // Recargar es lo más fiable: todo (menús, títulos, atributos) se vuelve a pintar en el idioma nuevo
   function setLang(l) {
@@ -356,6 +397,12 @@ const BD = window.BD = (() => {
     document.documentElement.lang = lang();
     window.dispatchEvent(new CustomEvent('bd:lang'));
     buildNav();
+    // Idioma: ES por defecto; el cambio se guarda y se recuerda en la próxima visita
+    const lb = $('#langBtn');
+    lb.textContent = lang() === 'en' ? 'EN' : 'ES';
+    lb.title = lang() === 'en' ? 'Cambiar a español' : 'Switch to English';
+    lb.setAttribute('aria-label', lb.title);
+    lb.onclick = () => setLang(lang() === 'en' ? 'es' : 'en');
     $('#themeCycle').onclick = () => {
       const i = THEMES.findIndex(t => t[0] === settings().theme);
       const next = THEMES[(i + 1) % THEMES.length];
@@ -375,7 +422,7 @@ const BD = window.BD = (() => {
   return {
     $, $$, esc, uid, today, store, settings, saveSettings, route, tool, tools, go, render, win, toast, copy, seg, dropzone,
     fmtBytes, download, readDataURL, readText, readBuffer, loadImage, canvasBlob, baseName, loadScript, LIB, zipAndDownload,
-    cssVar, hasAI, ai, imageBlock, localAI, anyAI, log, THEMES, setTheme, money, num, icon,
+    cssVar, setupTransformers, stats, track, hasAI, ai, imageBlock, localAI, anyAI, log, THEMES, setTheme, money, num, icon,
     lang, L, locale, setLang, layout, saveLayout, buildNav, tr: s => s, // tr lo reemplaza i18n.js
   };
 })();

@@ -1,10 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 -20 116 116">
+  <!-- Gatito de BrainDeck. Doble contorno (negro por fuera, blanco por dentro) para verse en fondos claros y oscuros, como el modo oscuro de GitHub -->
   <defs>
-    <radialGradient id="g" cx="35%" cy="30%">
-      <stop offset="0" stop-color="#ffd1ec"/>
-      <stop offset=".5" stop-color="#ff5fae"/>
-      <stop offset="1" stop-color="#8b6cff"/>
-    </radialGradient>
+    <path id="head" d="M30 17 L25 0 L47 12 C55 9.5 65 9.5 73 12 L95 0 L90 17 C101 23 108 34 108 48 C108 66 88 76 60 76 C32 76 12 66 12 48 C12 34 19 23 30 17 Z"/>
   </defs>
-  <circle cx="50" cy="50" r="44" fill="url(#g)"/>
+  <use href="#head" fill="none" stroke="#141414" stroke-width="12" stroke-linejoin="round"/>
+  <use href="#head" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/>
+  <use href="#head" fill="#141414"/>
+  <circle cx="44" cy="42" r="9.5" fill="#f3ecd2"/><circle cx="76" cy="42" r="9.5" fill="#f3ecd2"/>
+  <circle cx="44" cy="43" r="6.5" fill="#141414"/><circle cx="76" cy="43" r="6.5" fill="#141414"/>
+  <circle cx="46.5" cy="40" r="2" fill="#fff"/><circle cx="78.5" cy="40" r="2" fill="#fff"/>
+  <path d="M56 56 Q60 60 64 56" fill="none" stroke="#ff8fb1" stroke-width="2.5" stroke-linecap="round"/>
 </svg>

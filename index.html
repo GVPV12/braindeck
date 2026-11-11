@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang="es" data-theme="neo">
+<html lang="es" data-theme="paper">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>BrainDeck</title>
   <meta name="description" content="BrainDeck: herramientas para creativos y autodidactas + minijuegos.">
-  <meta name="theme-color" content="#dcf34b">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" type="image/svg+xml" href="img/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700&family=Pixelify+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700&family=Pixelify+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
   <script>
     // Aplica el estilo e idioma guardados antes de pintar (evita el parpadeo del tema por defecto)
@@ -36,6 +36,8 @@
       <header class="top">
         <a class="brand brand-mobile" href="#/"><img class="brand-logo" src="img/logo.svg" alt="" width="30" height="30"><span>Brain<b>Deck</b></span></a>
         <div class="top-actions">
+          <button class="icon-btn lang-btn" id="langBtn" translate="no">ES</button>
+          <button class="icon-btn" id="radioBtn" data-radio title="Radio" aria-label="Radio"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5M19.1 4.9C23 8.8 23 15.1 19.1 19"/><circle cx="12" cy="12" r="2"/></svg></button>
           <button class="icon-btn" id="themeCycle" title="Cambiar estilo" aria-label="Cambiar estilo">◐</button>
         </div>
       </header>
@@ -47,6 +49,7 @@
   <div class="toasts" id="toasts"></div>
 
   <script src="js/core.js"></script>
+  <script src="js/pixel.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/home.js"></script>
   <script src="js/commission.js"></script>
@@ -69,5 +72,8 @@
   <script src="js/qr.js"></script>
   <script src="js/games.js"></script>
   <script src="js/findme.js"></script>
+  <script src="js/qnotes.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/radio.js"></script>
 </body>
 </html>

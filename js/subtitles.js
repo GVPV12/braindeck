@@ -12,8 +12,7 @@
   async function getASR(model, onP) {
     if (asr && asrModel === model) return asr;
     const { pipeline, env } = await import(BD.LIB.transformers);
-    env.allowLocalModels = false;
-    env.useBrowserCache = typeof caches !== 'undefined' && location.protocol !== 'file:';
+    BD.setupTransformers(env);
     const gpu = !!navigator.gpu;
     asr = await pipeline('automatic-speech-recognition', MODELS[model], {
       device: gpu ? 'webgpu' : 'wasm',
