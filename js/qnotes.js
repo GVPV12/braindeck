@@ -49,6 +49,7 @@
               <button class="hc-cmd" data-c="new">${L('Nueva nota', 'New note')}<kbd>⌥N</kbd></button>
               <button class="hc-cmd" data-c="dup">${L('Duplicar', 'Duplicate')}</button>
               <button class="hc-cmd" data-c="txt">${L('Exportar .txt', 'Export .txt')}</button>
+              <button class="hc-cmd" data-c="zip">${L('Exportar todas', 'Export all')}</button>
               <button class="hc-cmd" data-c="del">${L('Borrar nota', 'Delete note')}</button>
             </div>
             <div class="hc-body" id="hcBody"></div>
@@ -120,6 +121,20 @@
         new: () => create(),
         dup: () => { const n = all().find(x => x.id === curId); if (!n) return toast(L('Elige una nota primero', 'Pick a note first'), 'bad'); create({ title: n.title + L(' (copia)', ' (copy)'), text: n.text, tab: n.tab }); },
         txt: () => { const n = all().find(x => x.id === curId); if (!n) return toast(L('Elige una nota primero', 'Pick a note first'), 'bad'); download(new Blob([(n.title ? n.title + '\n\n' : '') + n.text], { type: 'text/plain' }), (n.title.trim() || 'nota').replace(/[\\/:*?"<>|]/g, '').slice(0, 60) + '.txt'); },
+        // Todas las notas (o las de la pestaña abierta): un .txt por nota, en carpetas por pestaña, dentro de un .zip
+        zip: async () => {
+          const v = all().filter(n => tab === 'all' || n.tab === tab);
+          if (!v.length) return toast(L('No hay notas que exportar', 'No notes to export'), 'bad');
+          const tabName = Object.fromEntries(TABS()), names = new Set();
+          const clean = s => String(s).replace(/[\\/:*?"<>|]/g, '').trim();
+          const files = v.map(n => {
+            const dir = clean(tabName[n.tab] || n.tab) || 'notas', base = clean(titleOf(n)).slice(0, 60) || 'nota';
+            let name = `${dir}/${base}.txt`, i = 2; while (names.has(name)) name = `${dir}/${base} (${i++}).txt`; names.add(name);
+            return { name, blob: new Blob([(n.title ? n.title + '\n\n' : '') + n.text], { type: 'text/plain' }) };
+          });
+          await BD.zipAndDownload(files, `braindeck-notas-rapidas-${BD.today()}.zip`);
+          toast(L(`${files.length} notas exportadas`, `${files.length} notes exported`));
+        },
         del: e => {
           if (!all().some(x => x.id === curId)) return toast(L('Elige una nota primero', 'Pick a note first'), 'bad');
           const b = e.target.closest('[data-c]');

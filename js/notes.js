@@ -205,7 +205,7 @@
           </div>
           <div class="card" id="nOut"><div class="empty"><span class="big">📝</span>${L('Tus notas aparecerán aquí', 'Your notes will show up here')}</div></div>
         </div>
-        <div class="section-title"><h2>${L('Notas guardadas', 'Saved notes')}</h2></div>
+        <div class="section-title row"><h2 style="flex:1">${L('Notas guardadas', 'Saved notes')}</h2><button class="btn ghost sm" id="nExportAll">⬇ ${L('Exportar todas (.zip)', 'Export all (.zip)')}</button></div>
         <div class="stack" id="nSaved"></div>`;
 
       const HELP = {
@@ -298,6 +298,19 @@
           <button class="icon-btn" data-del="${n.id}">🗑</button></div>`).join('')
           : `<p class="muted">${L('Aún no guardas notas.', 'No saved notes yet.')}</p>`;
       }
+      // Todas las notas guardadas: un .md por nota dentro de un .zip
+      $('#nExportAll', body).onclick = async () => {
+        const all = store.get('notes', []);
+        if (!all.length) return toast(L('Aún no guardas notas.', 'No saved notes yet.'), 'bad');
+        const names = new Set();
+        const files = all.map(n => {
+          const base = (n.title || 'notas').replace(/[\\/:*?"<>|]/g, '').slice(0, 50).trim() || 'notas';
+          let name = base + '.md', i = 2; while (names.has(name)) name = `${base} (${i++}).md`; names.add(name);
+          return { name, blob: new Blob([toMarkdown(n)], { type: 'text/markdown' }) };
+        });
+        await BD.zipAndDownload(files, `braindeck-notas-${BD.today()}.zip`);
+        toast(L(`${files.length} notas exportadas`, `${files.length} notes exported`));
+      };
       $('#nSaved', body).onclick = e => {
         const o = e.target.closest('[data-open]'), d = e.target.closest('[data-del]'), q = e.target.closest('[data-quick]');
         if (q) return toQuick(store.get('notes', []).find(n => n.id === q.dataset.quick));
