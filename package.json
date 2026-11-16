@@ -1,6 +1,7 @@
 {
   "name": "braindeck",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "description": "BrainDeck: herramientas para crear y aprender. Web estática; este archivo solo sirve para las pruebas y el lint (la app no necesita compilarse).",
   "scripts": {
     "serve": "http-server -p 4173 -c-1 --silent .",

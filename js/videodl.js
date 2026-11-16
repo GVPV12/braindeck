@@ -6,7 +6,7 @@
 
   const PLATFORMS = [
     [/youtu\.?be/, 'YouTube'], [/vimeo\.com/, 'Vimeo'], [/bilibili\.(com|tv)|b23\.tv/, 'Bilibili'], [/dailymotion\.com|dai\.ly/, 'Dailymotion'],
-    [/ok\.ru/, 'OK.ru'], [/tiktok\.com/, 'TikTok'], [/instagram\.com/, 'Instagram'], [/(twitter|x)\.com/, 'X / Twitter'], [/twitch\.tv/, 'Twitch'],
+    [/ok\.ru/, 'OK.ru'], [/tiktok\.com/, 'TikTok'], [/instagram\.com/, 'Instagram'], [/pinterest\.[a-z.]+|pin\.it/, 'Pinterest'], [/(twitter|x)\.com/, 'X / Twitter'], [/twitch\.tv/, 'Twitch'],
     [/facebook\.com|fb\.watch/, 'Facebook'], [/soundcloud\.com/, 'SoundCloud'], [/reddit\.com/, 'Reddit'], [/nicovideo\.jp/, 'Niconico'], [/rumble\.com/, 'Rumble'],
   ];
   const DIRECT = /\.(mp4|webm|mov|m4v|mkv|mp3|m4a|ogg|wav|opus)(\?|#|$)/i;

@@ -155,6 +155,13 @@
     return out;
   }
   const sortS = a => a.sort((x, y) => x.date.localeCompare(y.date) || x.start - y.start);
+  // Lo pendiente se vuelve a repartir desde hoy (lo hecho no se mueve). Lo usan la vista del plan y el Tracker.
+  BD.progress.reschedule = pl => {
+    if (!pl.tasks || !pl.tasks.length) return;
+    const fixed = {}; pl.sessions.filter(s => s.done).forEach(s => fixed[s.id] = s.date);
+    const tasks = pl.tasks.filter(t => !fixed[t.id]);
+    pl.sessions = sortS([...pl.sessions.filter(s => s.done), ...schedule(tasks, { ...pl.opts, start: today() }, fixed)]);
+  };
 
   // ================= exportar =================
   function ics(pl) {
@@ -410,6 +417,7 @@
           <div class="row" style="margin:18px 0">
             <button class="btn primary" id="plIcs">📅 ${L('Descargar calendario (.ics)', 'Download calendar (.ics)')}</button>
             <button class="btn ghost" id="plCsv">CSV</button>
+            <a class="btn ghost" href="#/tracker?plan=${pl.id}">📈 ${L('Ver progreso', 'See progress')}</a>
             <span class="muted small">${L('Ábrelo con Outlook / Calendario de Windows o impórtalo en Google Calendar. Cada sesión trae aviso 10 min antes.', 'Open it with Outlook / Windows Calendar or import it into Google Calendar. Each session has a 10-min reminder.')}</span>
           </div>
           <div class="split">
@@ -439,9 +447,7 @@
         if (id === 'plCsv') BD.download(new Blob(['﻿' + [L('fecha,inicio,fin,tipo,elemento,detalle,hecho', 'date,start,end,type,item,detail,done'),
           ...pl.sessions.map(s => [s.date, hhmm(s.start), hhmm(s.end), typeName(s.type), s.title, s.detail, s.done ? 1 : 0].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n')], { type: 'text/csv' }), fileName(pl.name) + '.csv');
         if (id === 'plResched') {
-          const fixed = {}; pl.sessions.filter(s => s.done).forEach(s => fixed[s.id] = s.date);
-          const tasks = pl.tasks.filter(t => !fixed[t.id]);
-          pl.sessions = sortS([...pl.sessions.filter(s => s.done), ...schedule(tasks, { ...pl.opts, start: today() }, fixed)]);
+          BD.progress.reschedule(pl);
           persist(); toast(L('Plan reprogramado 📅 (descarga el .ics de nuevo)', 'Plan rescheduled 📅 (download the .ics again)'));
           month = today().slice(0, 7); draw();
         }

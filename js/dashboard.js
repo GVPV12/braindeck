@@ -71,7 +71,7 @@
     Object.entries(s.uses).forEach(([p, n]) => { const t = BD.tools.find(x => x.path === p); const c = t ? (t.cat || 'extra') : 'extra'; cat[c] = (cat[c] || 0) + n; });
     const total = Object.values(s.uses).reduce((a, b) => a + b, 0);
     const c = {
-      s, sum, total, cat, distinct: Object.keys(s.uses).length,
+      s, sum, total, cat, distinct: Object.keys(s.uses).length, study,
       studyDays: study.size, daysActive: Object.keys(s.days).length, streak: sum.streak,
       tests: pr.results.length, plansDone: done.length, qnotes: store.get('qnotes', []).length,
       radioPlays: s.radio.plays || 0, radioMin: s.radio.min || 0,
@@ -86,12 +86,16 @@
     return c;
   }
 
+  // Nivel y XP para otras herramientas (el Tracker los muestra: cada sesión hecha suma XP aquí)
+  BD.level = () => { const c = numbers(); return { level: c.level, xp: c.lvXp, need: c.lvNeed }; };
+
   // Data que guarda cada herramienta (además de cuántas veces la abriste)
   const n = (x, one, many) => `${x} ${x === 1 ? one : many}`;
   const arr = k => (store.get(k, []) || []).length;
   const DATA = {
     '/notas': () => n(arr('notes'), L('nota', 'note'), L('notas', 'notes')),
     '/plan': () => { const p = store.get('plans', []), s = p.flatMap(x => x.sessions || []); return `${n(p.length, L('plan', 'plan'), L('planes', 'plans'))} · ${s.filter(x => x.done).length}/${s.length} ${L('sesiones', 'sessions')}`; },
+    '/tracker': () => { const s = store.get('plans', []).flatMap(x => x.sessions || []); return s.length ? `${Math.round(s.filter(x => x.done).length / s.length * 100)}% ${L('del plan completado', 'of plan done')}` : L('Sin planes aún', 'No plans yet'); },
     '/test': () => { const pr = BD.progress.load(); return `${n(arr('decks'), 'test', 'tests')} · ${pr.results.length} ${L('hechos', 'done')} · ${pr.mistakes.length} ${L('en repaso', 'in review')}`; },
     '/reto': () => { const c = store.get('challenges', []); return `${n(c.length, L('reto', 'challenge'), L('retos', 'challenges'))} · ${c.reduce((a, x) => a + (x.done || []).length, 0)} ${L('días hechos', 'days done')}`; },
     '/ingles': () => n(arr('speak:history'), L('grabación', 'recording'), L('grabaciones', 'recordings')),
@@ -119,11 +123,11 @@
   const avatarSvg = () => BD.AVATARS[avatarId()].svg;
   // Ocupación según la herramienta que más usas (nombres que sirven para cualquier persona)
   const JOBS = {
-    '/notas': () => L('Archivista', 'Archivist'), '/plan': () => L('Estratega', 'Strategist'), '/test': () => L('Estudiante', 'Scholar'),
+    '/notas': () => L('Archivista', 'Archivist'), '/plan': () => L('Estratega', 'Strategist'), '/tracker': () => L('Cronista', 'Chronicler'),'/test': () => L('Estudiante', 'Scholar'),
     '/reto': () => L('Atleta de retos', 'Challenge athlete'), '/ingles': () => L('Políglota', 'Polyglot'), '/notas-rapidas': () => L('Escriba', 'Scribe'),
     '/radio': () => 'DJ', '/foco': () => L('Mente zen', 'Zen mind'), '/ideas': () => L('Artista', 'Artist'), '/art-unblock': () => L('Surrealista', 'Surrealist'),
     '/paletas': () => L('Colorista', 'Colorist'), '/gesture': () => L('Dibujante', 'Sketch artist'), '/marca-agua': () => L('Centinela', 'Sentinel'),
-    '/quitar-fondo': () => L('Ilusionista', 'Illusionist'), '/convertir': () => L('Alquimista', 'Alchemist'), '/descargar-video': () => L('Videasta', 'Videographer'),
+    '/quitar-fondo': () => L('Ilusionista', 'Illusionist'), '/convertir': () => L('Alquimista', 'Alchemist'), '/descargar-video': () => L('Videasta', 'Videographer'), '/pinterest-instagram': () => L('Curador', 'Curator'),
     '/subtitulos': () => L('Intérprete', 'Interpreter'), '/editar-pdf': () => L('Copista', 'Copyist'), '/unir-pdf': () => L('Coleccionista de páginas', 'Page collector'),
     '/qr': () => 'Hacker', '/comision': () => L('Comerciante', 'Merchant'), '/ahorro': () => L('Economista', 'Economist'),
     '/decisiones': () => L('Analista', 'Analyst'), '/juegos': () => 'Gamer',
@@ -139,13 +143,14 @@
   const blocks = (v, step) => { const f = Math.min(10, Math.ceil(v / step)); return `<span class="seg10">${Array.from({ length: 10 }, (_, i) => `<i class="${i < f ? 'on' : ''}"></i>`).join('')}</span>`; };
   const fmtNext = nx => nx ? new Date(nx.date + 'T12:00').toLocaleDateString(BD.locale(), { weekday: 'short', day: 'numeric' }) + ' · ' + String(Math.floor(nx.start / 60)).padStart(2, '0') + ':' + String(nx.start % 60).padStart(2, '0') : '—';
 
-  function heatmap(s) {
+  // study = días con estudio (herramientas de estudio abiertas, sesiones del plan hechas o tests): los mismos que usa el Tracker
+  function heatmap(s, study) {
     // columnas = semanas (lunes arriba); termina en la semana actual
     const weeks = 18, end = new Date(), start = new Date(end);
     start.setDate(end.getDate() - (end.getDay() + 6) % 7 - (weeks - 1) * 7);
     let out = '';
     for (let d = new Date(start), i = 0; i < weeks * 7; i++, d.setDate(d.getDate() + 1)) {
-      const k = BD.today(d), v = (s.days[k] || 0) + (s.sdays[k] ? 2 : 0);
+      const k = BD.today(d), v = (s.days[k] || 0) + (study.has(k) ? 2 : 0);
       const l = d > end ? -1 : !v ? 0 : v < 3 ? 1 : v < 6 ? 2 : v < 10 ? 3 : 4;
       out += l < 0 ? '<i style="visibility:hidden"></i>' : `<i data-l="${l}" title="${k}: ${s.days[k] || 0}"></i>`;
     }
@@ -233,7 +238,7 @@
               <div class="bag">${ITEMS.map(it => got.has(it.id)
                 ? `<div class="bag-slot on ${fresh.includes(it) ? 'new' : ''}" data-tip="${esc(it.name)} — ${esc(it.req)}">${BD.pixel(it.r, it.p)}</div>`
                 : `<div class="bag-slot" data-tip="??? — ${esc(it.req)}">${BD.pixel(it.r, Object.fromEntries(Object.keys(it.p).map(k => [k, 'var(--lock)'])))}<em>?</em></div>`).join('')}</div>`)}
-            ${dw('dw-act', L('ACTIVIDAD', 'ACTIVITY'), `${heatmap(s)}
+            ${dw('dw-act', L('ACTIVIDAD', 'ACTIVITY'), `${heatmap(s, c.study)}
               <p class="muted small dash-note">${L('Cada cuadro es un día. Más color = más uso (estudiar cuenta doble).', 'Each square is a day. More color = more use (studying counts double).')}</p>`)}
             ${dw('dw-top', 'TOP APPS', top.length ? `<div class="top-apps">${top.map(([t, v]) => `
               <a class="top-row" href="${t.external || '#' + t.path}" ${t.radio ? 'data-radio' : ''} ${t.external ? `target="_blank" rel="noopener" data-track="${t.path}"` : ''}>${BD.appIcon(t.path, 'sm') || ''}<span class="t">${esc(t.short || t.title)}</span>

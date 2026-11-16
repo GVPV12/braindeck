@@ -41,23 +41,31 @@
         <div class="hc">
           <div class="hc-rings" aria-hidden="true">${'<i></i>'.repeat(26)}</div>
           <div class="hc-page">
-            <div class="hc-menu">
-              <div class="hc-menu-h">${L('Notas', 'Notes')}</div>
-              <input class="hc-search" type="search" placeholder="${L('Buscar…', 'Search…')}" aria-label="${L('Buscar notas', 'Search notes')}">
-              <div class="hc-list" id="hcList"></div>
-              <div class="hc-sep"></div>
-              <button class="hc-cmd" data-c="new">${L('Nueva nota', 'New note')}<kbd>⌥N</kbd></button>
-              <button class="hc-cmd" data-c="dup">${L('Duplicar', 'Duplicate')}</button>
-              <button class="hc-cmd" data-c="txt">${L('Exportar .txt', 'Export .txt')}</button>
-              <button class="hc-cmd" data-c="zip">${L('Exportar todas', 'Export all')}</button>
-              <button class="hc-cmd" data-c="del">${L('Borrar nota', 'Delete note')}</button>
+            <div class="hc-menu" id="hcMenu">
+              <!-- En el celular la cabecera pliega/despliega el menú para dejar sitio a la nota -->
+              <button type="button" class="hc-menu-h" data-c="menu" aria-expanded="true" aria-controls="hcMenuIn">${L('Notas', 'Notes')} <small id="hcCount"></small><i aria-hidden="true">▾</i></button>
+              <div class="hc-menu-in" id="hcMenuIn">
+                <input class="hc-search" type="search" placeholder="${L('Buscar…', 'Search…')}" aria-label="${L('Buscar notas', 'Search notes')}">
+                <div class="hc-list" id="hcList"></div>
+                <div class="hc-sep"></div>
+                <div class="hc-cmds">
+                  <button class="hc-cmd" data-c="new">${L('Nueva nota', 'New note')}<kbd>⌥N</kbd></button>
+                  <button class="hc-cmd" data-c="dup">${L('Duplicar', 'Duplicate')}</button>
+                  <button class="hc-cmd" data-c="txt">${L('Exportar .txt', 'Export .txt')}</button>
+                  <button class="hc-cmd" data-c="zip">${L('Exportar todas', 'Export all')}</button>
+                  <button class="hc-cmd" data-c="del">${L('Borrar nota', 'Delete note')}</button>
+                </div>
+              </div>
             </div>
             <div class="hc-body" id="hcBody"></div>
           </div>
           <div class="hc-tabs" id="hcTabs" role="tablist"></div>
         </div>`;
 
-      const list = $('#hcList', body), main = $('#hcBody', body);
+      const list = $('#hcList', body), main = $('#hcBody', body), menu = $('#hcMenu', body);
+      // Plegado solo cambia algo en pantallas estrechas (ver CSS); con una nota abierta se pliega para que se vea entera
+      const setMenu = open => { menu.classList.toggle('closed', !open); $('.hc-menu-h', menu).setAttribute('aria-expanded', String(open)); };
+      setMenu(!curId);
       const visible = () => all().filter(n => (tab === 'all' || n.tab === tab) && (!q || (n.title + ' ' + n.text).toLowerCase().includes(q)))
         .sort((a, b) => (b.pin - a.pin) || b.updated - a.updated);
       // ✕ que aparece al pasar el cursor; 1er clic pide confirmación, 2º clic borra
@@ -69,6 +77,7 @@
       }
       function paintList() {
         const v = visible();
+        $('#hcCount', menu).textContent = v.length ? `· ${v.length}` : '';
         list.innerHTML = v.length ? v.map(n => `<div class="hc-row"><button class="hc-item ${n.id === curId ? 'on' : ''}" data-id="${n.id}">${n.pin ? '★ ' : ''}${esc(titleOf(n))}</button>${delBtn(n.id)}</div>`).join('')
           : `<p class="hc-empty">${q ? L('Nada coincide.', 'No matches.') : L('Aún no hay notas aquí.', 'No notes here yet.')}</p>`;
       }
@@ -115,9 +124,10 @@
       function create(base = {}) {
         const n = { id: uid(), title: '', text: '', tab: tab === 'all' ? 'ideas' : tab, pin: 0, created: Date.now(), updated: Date.now(), ...base };
         const a = all(); a.unshift(n); saveAll(a);
-        curId = n.id; q = ''; $('.hc-search', body).value = ''; rememberUI(); paintList(); paintNote();
+        curId = n.id; q = ''; $('.hc-search', body).value = ''; rememberUI(); setMenu(false); paintList(); paintNote();
       }
       const commands = {
+        menu: () => setMenu(menu.classList.contains('closed')),
         new: () => create(),
         dup: () => { const n = all().find(x => x.id === curId); if (!n) return toast(L('Elige una nota primero', 'Pick a note first'), 'bad'); create({ title: n.title + L(' (copia)', ' (copy)'), text: n.text, tab: n.tab }); },
         txt: () => { const n = all().find(x => x.id === curId); if (!n) return toast(L('Elige una nota primero', 'Pick a note first'), 'bad'); download(new Blob([(n.title ? n.title + '\n\n' : '') + n.text], { type: 'text/plain' }), (n.title.trim() || 'nota').replace(/[\\/:*?"<>|]/g, '').slice(0, 60) + '.txt'); },
@@ -139,11 +149,11 @@
           if (!all().some(x => x.id === curId)) return toast(L('Elige una nota primero', 'Pick a note first'), 'bad');
           const b = e.target.closest('[data-c]');
           if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = L('¿Seguro? Pulsa otra vez', 'Sure? Click again'); setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = L('Borrar nota', 'Delete note'); } }, 3000); return; }
-          saveAll(all().filter(x => x.id !== curId)); curId = null; rememberUI(); paintList(); paintNote(); toast(L('Nota borrada', 'Note deleted'));
+          saveAll(all().filter(x => x.id !== curId)); curId = null; rememberUI(); setMenu(true); paintList(); paintNote(); toast(L('Nota borrada', 'Note deleted'));
           delete b.dataset.armed; b.textContent = L('Borrar nota', 'Delete note');
         },
         pin: () => { const n = all().find(x => x.id === curId); update({ pin: n.pin ? 0 : 1 }); paintList(); paintNote(); },
-        grid: () => { curId = null; rememberUI(); paintList(); paintNote(); },
+        grid: () => { curId = null; rememberUI(); setMenu(true); paintList(); paintNote(); },
       };
 
       body.addEventListener('click', e => {
@@ -155,15 +165,18 @@
             return;
           }
           saveAll(all().filter(n => n.id !== x.dataset.del));
-          if (curId === x.dataset.del) curId = null;
+          if (curId === x.dataset.del) { curId = null; setMenu(true); }
           rememberUI(); paintList(); paintNote(); toast(L('Nota borrada', 'Note deleted'));
           return;
         }
         if (c) commands[c.dataset.c](e);
-        else if (it) { curId = it.dataset.id; rememberUI(); paintList(); paintNote(); }
+        else if (it) {
+          curId = it.dataset.id; rememberUI(); setMenu(false); paintList(); paintNote();
+          if (matchMedia('(max-width: 760px)').matches) main.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }
         else if (tb) {
           tab = tb.dataset.tab;
-          if (tab === 'all') curId = null; // "Todas" abre la vista de apps
+          if (tab === 'all') { curId = null; setMenu(true); } // "Todas" abre la vista de apps
           rememberUI(); paintTabs(); paintList(); paintNote();
         }
       });

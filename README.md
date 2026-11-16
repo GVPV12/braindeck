@@ -107,7 +107,7 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 ```bash
 git clone https://github.com/GVPV12/braindeck.git
 cd braindeck
-npx serve .            # o: python -m http.server
+pnpm dlx serve .       # o: python -m http.server
 ```
 
 También funciona con doble clic en `index.html`. Aun así, se recomienda servirlo por HTTP: los modelos de IA solo se guardan en caché en `http(s)://`.
@@ -155,11 +155,11 @@ La IA es opcional y tiene tres niveles:
 ## Pruebas
 
 ```bash
-npm install
-npx playwright install chromium
-npm run lint        # ESLint: errores reales, sin reglas de estilo
-npm test            # abre cada herramienta en escritorio, laptop y móvil y falla si hay errores de JavaScript
-npm run test:i18n   # lista los textos que siguen en español con la interfaz en inglés
+pnpm install
+pnpm exec playwright install chromium
+pnpm lint           # ESLint: errores reales, sin reglas de estilo
+pnpm test           # abre cada herramienta en escritorio, laptop y móvil y falla si hay errores de JavaScript
+pnpm test:i18n      # lista los textos que siguen en español con la interfaz en inglés
 ```
 
 GitHub Actions ejecuta lo mismo en cada push (`.github/workflows/ci.yml`).

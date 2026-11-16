@@ -101,6 +101,9 @@
     '/ajustes': { tile: T.blue, p: { k: K, s: '#c3cad8' }, r: [
       '....kkkk....', '.kk.kssk.kk.', '.kskssssksk.', '..kssssssk..', 'kkssskkssskk', 'ksssk..ksssk',
       'ksssk..ksssk', 'kkssskkssskk', '..kssssssk..', '.kskssssksk.', '.kk.kssk.kk.', '....kkkk....'] },
+    '/tracker': { tile: T.lime, p: { k: K, w: W, p: '#ff8fb1', y: '#ffd400', g: '#2ec27e' }, r: [
+      'kkkkkkkkkkkk', 'kwwwwwwwwwwk', 'kwwwwwwwwggk', 'kwwwwwwwwggk', 'kwwwwwyywggk', 'kwwwwwyywggk',
+      'kwwppwyywggk', 'kwwppwyywggk', 'kwwppwyywggk', 'kkkkkkkkkkkk', '....kkkk....', '..kkkkkkkk..'] },
     '/herramientas': { tile: T.yellow, p: { k: K, r: '#ff5a5f', b: '#2f8cff', y: '#ffd400', g: '#2ec27e' }, r: [
       '............', '.kkkk..kkkk.', '.krrk..kbbk.', '.krrk..kbbk.', '.kkkk..kkkk.', '............',
       '............', '.kkkk..kkkk.', '.kyyk..kggk.', '.kyyk..kggk.', '.kkkk..kkkk.', '............'] },

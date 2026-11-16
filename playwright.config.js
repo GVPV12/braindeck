@@ -12,5 +12,5 @@ module.exports = defineConfig({
     { name: 'laptop', use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 640 } } },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
-  webServer: { command: 'npm run serve', port: 4173, reuseExistingServer: !process.env.CI },
+  webServer: { command: 'pnpm run serve', port: 4173, reuseExistingServer: !process.env.CI },
 });
