@@ -141,7 +141,9 @@
       <div class="dw-body">${body}</div>
     </section>`;
   const blocks = (v, step) => { const f = Math.min(10, Math.ceil(v / step)); return `<span class="seg10">${Array.from({ length: 10 }, (_, i) => `<i class="${i < f ? 'on' : ''}"></i>`).join('')}</span>`; };
-  const fmtNext = nx => nx ? new Date(nx.date + 'T12:00').toLocaleDateString(BD.locale(), { weekday: 'short', day: 'numeric' }) + ' · ' + String(Math.floor(nx.start / 60)).padStart(2, '0') + ':' + String(nx.start % 60).padStart(2, '0') : '—';
+  // planes "sin horas fijas": solo el día (y la duración), nunca una hora
+  const fmtNext = nx => nx ? new Date(nx.date + 'T12:00').toLocaleDateString(BD.locale(), { weekday: 'short', day: 'numeric' }) + ' · ' +
+    (nx.flex ? `≈${nx.end - nx.start} min` : String(Math.floor(nx.start / 60)).padStart(2, '0') + ':' + String(nx.start % 60).padStart(2, '0')) : '—';
 
   // study = días con estudio (herramientas de estudio abiertas, sesiones del plan hechas o tests): los mismos que usa el Tracker
   function heatmap(s, study) {

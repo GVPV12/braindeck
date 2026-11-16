@@ -37,7 +37,7 @@
     summary() {
       const all = plans(), t = today();
       const todays = all.flatMap(pl => pl.sessions.filter(s => s.date === t));
-      const next = all.flatMap(pl => pl.sessions.filter(s => !s.done && (s.date > t || (s.date === t))).map(s => ({ ...s, plan: pl.name })))
+      const next = all.flatMap(pl => pl.sessions.filter(s => !s.done && (s.date > t || (s.date === t))).map(s => ({ ...s, plan: pl.name, flex: !!(pl.opts && pl.opts.flex) })))
         .sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start)[0];
       return {
         streak: streak(), plans: all.length,
@@ -133,23 +133,31 @@
   }
   // Coloca las tareas día a día respetando días libres, minutos por día, descansos y dependencias
   // (una evaluación va al menos 1 día después de terminar el tema; un repaso, 7 días después).
+  // Opciones de accesibilidad (TDAH), todas opcionales:
+  //  flex: sin descansos obligatorios entre bloques (y sin horas fijas en la vista y el .ics)
+  //  oneTopic: cada día se trabaja un solo tema/libro/video, para no saltar entre cosas sin relación
+  //  buffer: el último día de estudio de cada semana queda libre como "comodín" para ponerse al día
+  //          (al reacomodar, los comodines de la primera semana sí se usan: para eso están)
+  const lastStudyDay = days => days.reduce((a, d) => (d + 6) % 7 > (a + 6) % 7 ? d : a, days[0]);
   function schedule(tasks, o, fixed = {}) {
     const placed = { ...fixed }, pending = tasks.filter(t => !placed[t.id]), out = [];
-    const day = dateOf(o.start);
+    const day = dateOf(o.start), pause = o.flex ? 0 : o.pause, comodin = lastStudyDay(o.days);
     for (let guard = 0; pending.length && guard < 1100; guard++, day.setDate(day.getDate() + 1)) {
       if (!o.days.includes(day.getDay())) continue;
       const ds = today(day);
+      if (o.buffer && o.days.length > 1 && day.getDay() === comodin && ds >= (o.bufferFrom || '')) continue;
       const ready = x => !x.dep || (placed[x.dep] && daysBetween(placed[x.dep], ds) >= x.gap);
-      let cap = o.perDay, t = toMin(o.time);
+      let cap = o.perDay, t = toMin(o.time), dayItem = null;
+      const same = x => !o.oneTopic || dayItem === null || x.item === dayItem;
       for (;;) {
-        let i = pending.findIndex(x => x.type !== 'study' && ready(x));
-        if (i < 0) i = pending.findIndex(x => x.type === 'study');
+        let i = pending.findIndex(x => x.type !== 'study' && ready(x) && same(x));
+        if (i < 0) i = pending.findIndex(x => x.type === 'study' && same(x));
         if (i < 0) break;
         const x = pending[i];
         if (x.dur > cap) break;
         out.push({ ...x, date: ds, start: t, end: t + x.dur, done: false });
-        placed[x.id] = ds; pending.splice(i, 1);
-        cap -= x.dur + o.pause; t += x.dur + o.pause;
+        placed[x.id] = ds; pending.splice(i, 1); dayItem = x.item;
+        cap -= x.dur + pause; t += x.dur + pause;
       }
     }
     return out;
@@ -160,7 +168,7 @@
     if (!pl.tasks || !pl.tasks.length) return;
     const fixed = {}; pl.sessions.filter(s => s.done).forEach(s => fixed[s.id] = s.date);
     const tasks = pl.tasks.filter(t => !fixed[t.id]);
-    pl.sessions = sortS([...pl.sessions.filter(s => s.done), ...schedule(tasks, { ...pl.opts, start: today() }, fixed)]);
+    pl.sessions = sortS([...pl.sessions.filter(s => s.done), ...schedule(tasks, { ...pl.opts, start: today(), bufferFrom: addDays(7) }, fixed)]);
   };
 
   // ================= exportar =================
@@ -171,9 +179,12 @@
     const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
     const TYPE = { study: '📚', eval: '📝', review: '🔁', final: '🏁' };
     const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//BrainDeck//Plan de estudios//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:' + e(pl.name)];
-    pl.sessions.forEach(s => lines.push('BEGIN:VEVENT', `UID:${s.id}@braindeck`, 'DTSTAMP:' + stamp, 'DTSTART:' + dt(s.date, s.start), 'DTEND:' + dt(s.date, s.end),
-      'SUMMARY:' + e(`${TYPE[s.type]} ${typeName(s.type)}: ${s.title}`), 'DESCRIPTION:' + e([s.detail, s.url, pl.name].filter(Boolean).join('\n')),
-      ...(s.url ? ['URL:' + s.url] : []), 'BEGIN:VALARM', 'TRIGGER:-PT10M', 'ACTION:DISPLAY', 'DESCRIPTION:' + e(s.title), 'END:VALARM', 'END:VEVENT'));
+    // Modo flexible: eventos de todo el día (sin hora fija) con un aviso suave a las 9:00
+    const flex = pl.opts && pl.opts.flex, day = d => d.replace(/-/g, '');
+    const when = s => flex ? ['DTSTART;VALUE=DATE:' + day(s.date), 'DTEND;VALUE=DATE:' + day(addDays(1, dateOf(s.date)))] : ['DTSTART:' + dt(s.date, s.start), 'DTEND:' + dt(s.date, s.end)];
+    pl.sessions.forEach(s => lines.push('BEGIN:VEVENT', `UID:${s.id}@braindeck`, 'DTSTAMP:' + stamp, ...when(s),
+      'SUMMARY:' + e(`${TYPE[s.type]} ${typeName(s.type)}: ${s.title}${flex ? ` (≈${s.end - s.start} min)` : ''}`), 'DESCRIPTION:' + e([s.detail, s.url, pl.name].filter(Boolean).join('\n')),
+      ...(s.url ? ['URL:' + s.url] : []), 'BEGIN:VALARM', flex ? 'TRIGGER:PT9H' : 'TRIGGER:-PT10M', 'ACTION:DISPLAY', 'DESCRIPTION:' + e(s.title), 'END:VALARM', 'END:VEVENT'));
     lines.push('END:VCALENDAR');
     return lines.map(fold).join('\r\n');
   }
@@ -190,7 +201,8 @@
     videos: { l: L('Videos', 'Videos'), ph: 'https://www.youtube.com/watch?v=… | 24:10\nCarl Jung y la sombra | 18:32\nhttps://youtu.be/… | 1:02:15',
       help: L('Un video por línea: enlace y/o título + duración (mm:ss o h:mm:ss). La duración no se puede leer de YouTube sin API: escríbela o usa la de abajo.', 'One video per line: link and/or title + duration (mm:ss or h:mm:ss). Duration can\'t be read from YouTube without an API: type it or use the default below.') },
   });
-  const DEFAULTS = { name: '', kind: 'topics', list: '', topicH: 2, pages: 250, pph: 25, videoMin: 20, factor: 1.5, start: '', time: '18:00', perDay: 90, block: 45, pause: 10, days: [1, 2, 3, 4, 5], evals: true, evalMin: 30, review: true, final: true };
+  const DEFAULTS = { name: '', kind: 'topics', list: '', topicH: 2, pages: 250, pph: 25, videoMin: 20, factor: 1.5, start: '', time: '18:00', perDay: 90, block: 45, pause: 10, days: [1, 2, 3, 4, 5], evals: true, evalMin: 30, review: true, final: true,
+    flex: false, oneTopic: false, buffer: false, gentle: false }; // accesibilidad (TDAH): desactivadas, las elige cada persona
 
   BD.tool({
     path: '/plan', cat: 'estudio', title: 'Crear plan de estudios', short: 'Crear plan de estudios', icon: BD.icon('calendar'),
@@ -248,6 +260,14 @@
               <label class="check"><input type="checkbox" id="gReview" ${o.review ? 'checked' : ''}> ${L('Repaso espaciado 7 días después', 'Spaced review 7 days later')}</label>
               <label class="check"><input type="checkbox" id="gFinal" ${o.final ? 'checked' : ''}> ${L('Evaluación final de todo', 'Final assessment of everything')}</label>
             </div>
+            <div class="card stack">
+              <h3>${L('Accesibilidad (TDAH)', 'Accessibility (ADHD)')}</h3>
+              <p class="muted small" style="margin:0">${L('Opcional. Marca solo lo que te sirva; puedes combinarlas.', 'Optional. Tick only what helps you; you can combine them.')}</p>
+              <label class="check"><input type="checkbox" id="gFlex" ${o.flex ? 'checked' : ''}> <span>${L('<b>Sin horas fijas</b>: cada sesión es para un día, no a una hora. Sin descansos obligatorios, y el calendario la pone como evento de todo el día.', '<b>No fixed times</b>: each session is for a day, not an hour. No forced breaks, and the calendar adds it as an all-day event.')}</span></label>
+              <label class="check"><input type="checkbox" id="gOne" ${o.oneTopic ? 'checked' : ''}> <span>${L('<b>Un tema por día</b>: no mezcla libros, temas o videos distintos el mismo día.', '<b>One topic per day</b>: doesn\'t mix different books, topics or videos on the same day.')}</span></label>
+              <label class="check"><input type="checkbox" id="gBuffer" ${o.buffer ? 'checked' : ''}> <span>${L('<b>Día comodín</b>: el último día de estudio de cada semana queda libre para ponerte al día. Si te atrasas, el resto del plan no se mueve.', '<b>Catch-up day</b>: the last study day of each week stays free to catch up. If you fall behind, the rest of the plan doesn\'t shift.')}</span></label>
+              <label class="check"><input type="checkbox" id="gGentle" ${o.gentle ? 'checked' : ''}> <span>${L('<b>Sin culpa</b>: lo pendiente se muestra como «espera su turno», no como «atrasado», con un acceso a hacer una sola cosa ahora.', '<b>No guilt</b>: pending sessions show as "waiting", not "overdue", with a shortcut to do just one thing now.')}</span></label>
+            </div>
             <div class="note-box" id="gEst"></div>
             <button class="btn primary" id="gGo">${L('Crear plan y calendario', 'Create plan and calendar')} ✨</button>
           </div>
@@ -279,7 +299,11 @@
         const v = id => $('#' + id, body);
         Object.assign(o, { name: v('gName').value, list: list.value, start: v('gStart').value || today(), time: v('gTime').value || '18:00',
           perDay: Math.max(15, num(v('gPerDay').value)), block: Math.max(10, num(v('gBlock').value)), pause: Math.max(0, num(v('gPause').value)),
-          evals: v('gEvals').checked, evalMin: Math.max(10, num(v('gEvalMin').value)), review: v('gReview').checked, final: v('gFinal').checked });
+          evals: v('gEvals').checked, evalMin: Math.max(10, num(v('gEvalMin').value)), review: v('gReview').checked, final: v('gFinal').checked,
+          flex: v('gFlex').checked, oneTopic: v('gOne').checked, buffer: v('gBuffer').checked, gentle: v('gGentle').checked });
+        // sin horas fijas: la hora de inicio y los descansos dejan de importar
+        v('gTime').closest('.field').classList.toggle('hidden', o.flex);
+        v('gPause').closest('.field').classList.toggle('hidden', o.flex);
         if (v('gPages')) { o.pages = num(v('gPages').value) || 250; o.pph = num(v('gPph').value) || 25; }
         if (v('gVid')) { o.videoMin = num(v('gVid').value) || 20; o.factor = num(v('gFactor').value) || 1; }
         if (v('gTopicH')) o.topicH = num(v('gTopicH').value) || 2;
@@ -340,7 +364,8 @@
       $('#gGo', body).onclick = () => {
         sync();
         if (!items.length || !o.days.length) return toast($('#gEst', body).textContent, 'bad');
-        const opts = { start: o.start, time: o.time, perDay: o.perDay, block: o.block, pause: o.pause, days: o.days, evals: o.evals, evalMin: o.evalMin, review: o.review, final: o.final };
+        const opts = { start: o.start, time: o.time, perDay: o.perDay, block: o.block, pause: o.pause, days: o.days, evals: o.evals, evalMin: o.evalMin, review: o.review, final: o.final,
+          flex: o.flex, oneTopic: o.oneTopic, buffer: o.buffer, gentle: o.gentle };
         const pl = { id: uid(), name: o.name.trim() || items[0].name, kind: o.kind, items, tasks, opts, sessions: schedule(tasks, opts), created: Date.now() };
         const ps = plans(); ps.unshift(pl); savePlans(ps);
         store.set('plan:draft', { ...o, name: '', list: '' });
@@ -365,6 +390,10 @@
       let month = (pl.sessions.find(s => !s.done) || pl.sessions[0] || { date: today() }).date.slice(0, 7);
       const persist = () => savePlans(ps);
       const TYPE = { study: ['📚', ''], eval: ['📝', 'good'], review: ['🔁', ''], final: ['🏁', 'good'] };
+      // Sin horas fijas: en vez de "18:00–18:45" se muestra la duración aproximada
+      const flex = !!pl.opts.flex, gentle = !!pl.opts.gentle;
+      const when = s => flex ? `≈${s.end - s.start} min` : `${hhmm(s.start)}–${hhmm(s.end)}`;
+      const at = s => flex ? '' : ' ' + hhmm(s.start);
 
       function draw() {
         const S = pl.sessions, done = S.filter(s => s.done).length, h = S.reduce((a, s) => a + s.end - s.start, 0) / 60;
@@ -386,7 +415,7 @@
           <div class="agenda-day" id="d-${d}"><h4>${fmtDay(d)}</h4>${ss.map(s => `
             <label class="agenda-row ${s.done ? 'done' : ''}">
               <input type="checkbox" data-s="${s.id}" ${s.done ? 'checked' : ''}>
-              <span class="mono small">${hhmm(s.start)}–${hhmm(s.end)}</span>
+              <span class="mono small">${when(s)}</span>
               <span class="chip ${TYPE[s.type][1]}">${TYPE[s.type][0]} ${typeName(s.type)}</span>
               <span style="flex:1;min-width:140px"><b>${esc(s.title)}</b>${s.detail ? `<span class="muted small"> · ${esc(s.detail)}</span>` : ''}
               ${s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener" class="small">${L('abrir', 'open')} ↗</a>` : ''}</span>
@@ -399,8 +428,8 @@
           return `<div class="card stack" style="padding:14px">
             <div class="row"><b style="flex:1;min-width:0">${esc(it.name)}</b><span class="chip">${pct}%</span></div>
             <div class="muted small">${(it.minutes / 60).toFixed(1)} h · ${st.length} ${L('bloques', 'blocks')} · ${st.length ? fmtDay(st[0].date, { day: 'numeric', month: 'short' }) + ' → ' + fmtDay(st.at(-1).date, { day: 'numeric', month: 'short' }) : ''}</div>
-            ${ev ? `<div class="small">📝 <b>${fmtDay(ev.date, { weekday: 'short', day: 'numeric', month: 'short' })} ${hhmm(ev.start)}</b> — ${esc(ev.detail)}</div>` : ''}
-            ${rv ? `<div class="small">🔁 <b>${fmtDay(rv.date, { weekday: 'short', day: 'numeric', month: 'short' })} ${hhmm(rv.start)}</b> — ${L('repaso', 'review')}</div>` : ''}
+            ${ev ? `<div class="small">📝 <b>${fmtDay(ev.date, { weekday: 'short', day: 'numeric', month: 'short' })}${at(ev)}</b> — ${esc(ev.detail)}</div>` : ''}
+            ${rv ? `<div class="small">🔁 <b>${fmtDay(rv.date, { weekday: 'short', day: 'numeric', month: 'short' })}${at(rv)}</b> — ${L('repaso', 'review')}</div>` : ''}
             <div class="bar"><i style="width:${pct}%"></i></div>
           </div>`;
         }).join('');
@@ -413,12 +442,18 @@
             <div class="card stat"><b>${fmtDay(end, { day: 'numeric', month: 'short' })}</b><span>${L('fecha de fin', 'end date')}</span></div>
             <div class="card stat"><b>${S.length ? Math.round(done / S.length * 100) : 0}%</b><span>${L('completado', 'done')}</span><div class="bar" style="margin-top:8px"><i style="width:${S.length ? done / S.length * 100 : 0}%"></i></div></div>
           </div>
-          ${late ? `<div class="note-box" style="margin-top:16px">⏰ ${L(`Tienes <b>${late}</b> sesiones atrasadas.`, `You have <b>${late}</b> overdue sessions.`)} <button class="btn primary sm" id="plResched" style="margin-left:8px">${L('Reprogramar desde hoy', 'Reschedule from today')}</button></div>` : ''}
+          ${late ? (gentle
+            ? `<div class="note-box" style="margin-top:16px">🌱 ${L(`<b>${late}</b> ${late === 1 ? 'sesión espera' : 'sesiones esperan'} su turno. No pasa nada: el plan se adapta a ti, no al revés.`, `<b>${late}</b> ${late === 1 ? 'session is' : 'sessions are'} waiting. That's fine: the plan adapts to you, not the other way round.`)}
+                <div class="row" style="margin-top:8px"><button class="btn primary sm" id="plResched">${L('Reacomodar desde hoy', 'Spread from today')}</button>
+                <a class="btn ghost sm" href="#/tracker?plan=${pl.id}">${L('Hacer una sola cosa ahora', 'Do just one thing now')} →</a></div></div>`
+            : `<div class="note-box" style="margin-top:16px">⏰ ${L(`Tienes <b>${late}</b> sesiones atrasadas.`, `You have <b>${late}</b> overdue sessions.`)} <button class="btn primary sm" id="plResched" style="margin-left:8px">${L('Reprogramar desde hoy', 'Reschedule from today')}</button></div>`) : ''}
           <div class="row" style="margin:18px 0">
             <button class="btn primary" id="plIcs">📅 ${L('Descargar calendario (.ics)', 'Download calendar (.ics)')}</button>
             <button class="btn ghost" id="plCsv">CSV</button>
             <a class="btn ghost" href="#/tracker?plan=${pl.id}">📈 ${L('Ver progreso', 'See progress')}</a>
-            <span class="muted small">${L('Ábrelo con Outlook / Calendario de Windows o impórtalo en Google Calendar. Cada sesión trae aviso 10 min antes.', 'Open it with Outlook / Windows Calendar or import it into Google Calendar. Each session has a 10-min reminder.')}</span>
+            <span class="muted small">${flex
+              ? L('Ábrelo con Outlook / Calendario de Windows o impórtalo en Google Calendar. Cada sesión es un evento de todo el día, con un aviso a las 9:00.', 'Open it with Outlook / Windows Calendar or import it into Google Calendar. Each session is an all-day event with a reminder at 9:00.')
+              : L('Ábrelo con Outlook / Calendario de Windows o impórtalo en Google Calendar. Cada sesión trae aviso 10 min antes.', 'Open it with Outlook / Windows Calendar or import it into Google Calendar. Each session has a 10-min reminder.')}</span>
           </div>
           <div class="split">
             <div class="card">
@@ -428,7 +463,7 @@
             <div class="stack">
               <h3 style="margin:0">${L('Plan de evaluación', 'Assessment plan')}</h3>
               ${evalRows}
-              ${fin ? `<div class="card" style="padding:14px">🏁 <b>${typeName('final')}</b> — <b>${fmtDay(fin.date, { weekday: 'short', day: 'numeric', month: 'short' })} ${hhmm(fin.start)}</b><div class="muted small">${esc(fin.detail)}</div></div>` : ''}
+              ${fin ? `<div class="card" style="padding:14px">🏁 <b>${typeName('final')}</b> — <b>${fmtDay(fin.date, { weekday: 'short', day: 'numeric', month: 'short' })}${at(fin)}</b><div class="muted small">${esc(fin.detail)}</div></div>` : ''}
               <a class="btn ghost sm" href="#/test">${L('Crear un test en Libro → Test', 'Create a test in Book → Test')} →</a>
             </div>
           </div>
