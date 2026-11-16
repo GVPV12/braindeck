@@ -24,6 +24,7 @@ Herramientas para artistas, autodidactas y creativos, todo dentro de tu navegado
 - [Qué es](#qué-es)
 - [Herramientas](#herramientas)
 - [Empezar](#empezar)
+- [Accesibilidad para TDAH](#accesibilidad-para-tdah)
 - [Inteligencia artificial](#inteligencia-artificial)
 - [Privacidad](#privacidad)
 - [Seguridad](#seguridad)
@@ -41,8 +42,9 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 - **Inicio tipo dashboard:** ventanas con tu avatar, nivel y XP, stats estilo RPG, racha en corazones, datos de estudio, actividad diaria, apps más usadas, la data de cada herramienta y una bolsa de items pixel que se desbloquean según tu uso. Debajo, todas las herramientas como apps de un dispositivo. La vista clásica sigue en `#/herramientas`.
 - **Cuatro estilos visuales:** Paper (predeterminado: papel cuadriculado y ventanas retro en blanco y negro), Neo pixel (neobrutalista), Cosmos (glass oscuro) y Frost (minimal). El estilo elegido se recuerda en cada visita.
 - **Radio integrada** (herramienta de Estudio): reproductor abajo a la derecha que sigue sonando mientras usas las herramientas. Ruidos de colores y ambientes (biblioteca, lluvia, mar, chimenea, viento) generados en el navegador, más emisoras en vivo de lofi, vaporwave y ambient ([SomaFM](https://somafm.com/) y [Radio Browser](https://www.radio-browser.info/)), con modo aleatorio.
+- **Pensado también para TDAH:** el plan de estudios y el tracker evitan horarios rígidos y la culpa por atrasarse (ver [Accesibilidad para TDAH](#accesibilidad-para-tdah)).
 - **Bilingüe:** español por defecto e inglés desde Ajustes.
-- **Responsive:** menú lateral en escritorio y barra inferior en móvil.
+- **Responsive:** menú lateral en escritorio y barra inferior en móvil; probado a 360, 390 y 768 px sin desplazamiento horizontal.
 
 ## Herramientas
 
@@ -52,7 +54,8 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 |---|---|---|
 | Notas rápidas | `#/notas-rapidas` | Cuaderno de anillas estilo HyperCard con pestañas, búsqueda, notas fijadas y exportación a `.txt`. En "Todas" las notas se ven como apps. Se guarda solo. |
 | Capturas → notas | `#/notas` | OCR de capturas que separa el texto importante de la interfaz y lo convierte en notas, que puedes llevar a Notas rápidas. Modo local, IA local o Claude. |
-| Crear plan de estudios | `#/plan` | De una lista de temas, libros o videos a un plan de estudio y evaluación con calendario `.ics` a la hora exacta. |
+| Crear plan de estudios | `#/plan` | De una lista de temas, libros o videos a un plan de estudio y evaluación con calendario `.ics`. Opciones TDAH que eliges tú: sin horas fijas, un tema por día, día comodín y sin culpa. |
+| Tracker de progreso | `#/tracker` | Progreso de cada plan por curso, video o libro (% y páginas, minutos u horas), "qué hago ahora" según tu energía, cronómetro visible, XP, semana, notas y actividad. Modo calma y enlace directo a cada plan (`#/tracker?plan=ID`). |
 | Libro → test | `#/test` | Tests desde PDF, EPUB o TXT, con repaso espaciado (Leitner) y enlace para compartir. |
 | Reto de 30 días | `#/reto` | Una tarea diaria para dibujo, piano, 3D, animación, idiomas, programación, escritura o un curso desde tu plan de estudios. |
 | Coach de inglés hablado | `#/ingles` | Te grabas, Whisper transcribe y la IA corrige gramática, vocabulario, fluidez y posibles fallos de pronunciación. |
@@ -79,6 +82,7 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 | Unir PDFs | `#/unir-pdf` | Combina PDFs e imágenes, elige rangos de páginas y gíralas. |
 | Editar PDF | `#/editar-pdf` | Reordena, gira, elimina y divide páginas, numéralas, firma y comprime. |
 | Descargar videos | `#/descargar-video` | Genera el comando exacto de [yt-dlp](https://github.com/yt-dlp/yt-dlp) para la calidad y el formato elegidos, sin webs de descarga inseguras. |
+| Pinterest e Instagram | `#/pinterest-instagram` | Comandos de [gallery-dl](https://github.com/mikf/gallery-dl) (imágenes y carruseles) y yt-dlp (reels), con cookies del navegador opcionales para contenido que pide sesión. Solo para lo tuyo o con permiso. |
 | Generar subtítulos | `#/subtitulos` | SRT y VTT con Whisper en el navegador, editables y traducibles con IA. |
 | Generador de QR | `#/qr` | Enlaces, WiFi, contacto o WhatsApp, con estilo de puntos, colores, degradado y logo. PNG y SVG. |
 | Buscador de atajos | `#/atajos` | Atajos de Windows, macOS, Linux, terminal, navegador, VS Code, Photoshop, Krita, Blender, Figma, Procreate, Docs, Excel y YouTube. Se adapta a Ctrl o ⌘ y guarda favoritos. |
@@ -107,8 +111,11 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 ```bash
 git clone https://github.com/GVPV12/braindeck.git
 cd braindeck
-pnpm dlx serve .       # o: python -m http.server
+pnpm install
+pnpm serve             # http://localhost:4173
 ```
+
+> Usa **pnpm** (`npm i -g pnpm@9.15.0` si no lo tienes). Sin instalar nada también sirve `python -m http.server`.
 
 También funciona con doble clic en `index.html`. Aun así, se recomienda servirlo por HTTP: los modelos de IA solo se guardan en caché en `http(s)://`.
 
@@ -117,6 +124,21 @@ También funciona con doble clic en `index.html`. Aun así, se recomienda servir
 **Instalar como app:** en Chrome o Edge, el botón "Instalar" de la barra de direcciones. Tras la primera visita, BrainDeck abre también sin conexión (las herramientas que usan internet, como la radio o la IA, necesitan red).
 
 > La primera vez se necesita conexión para cargar librerías y modelos desde CDN.
+
+## Accesibilidad para TDAH
+
+Basado en investigación sobre gamificación y TDAH: recompensas inmediatas en vez de castigos, rutinas flexibles, tareas en partes pequeñas y el tiempo siempre visible. Sin Pomodoro obligatorio.
+
+**En el creador de planes** (casillas desmarcadas por defecto; cada persona elige):
+
+| Opción | Qué hace |
+|---|---|
+| Sin horas fijas | Cada sesión es para un día, no a una hora (se muestra solo la duración, p. ej. "≈40 min"); sin descansos obligatorios. En el `.ics` son eventos de todo el día con aviso a las 9:00. |
+| Un tema por día | No mezcla libros, temas o videos distintos el mismo día. |
+| Día comodín | El último día de estudio de cada semana queda libre para ponerse al día; atrasarse no mueve el resto del plan. |
+| Sin culpa | Lo pendiente "espera su turno" en vez de "atrasado", con botones para reacomodar desde hoy o hacer una sola cosa ahora. |
+
+**En el tracker:** una sola tarea sugerida ("ahora.exe") según tu energía de hoy, que prefiere seguir con lo mismo que hiciste antes; meta concreta por sesión; cronómetro visible contra la ceguera temporal; +5 XP y un mensaje de ánimo al terminar; "más tarde" sin penalización; modo calma con menos estímulos. La fecha de fin se muestra como estimación, no como plazo.
 
 ## Inteligencia artificial
 
@@ -142,7 +164,7 @@ La IA es opcional y tiene tres niveles:
   - Radio: [SomaFM](https://somafm.com/) y [Radio Browser](https://www.radio-browser.info/) (y la emisora elegida) ven tu IP.
   - Gesture drawing: Wikimedia Commons. Libro → test: noembed.com para los títulos de videos.
   - IA: los modelos se descargan de Hugging Face; Claude solo recibe lo que envías a `api.anthropic.com`.
-  - Librerías: cdnjs y jsDelivr; las fuentes, Google Fonts.
+  - Librerías: cdnjs y jsDelivr; las fuentes, Google Fonts (se cargan sin bloquear la página y quedan guardadas para abrir sin conexión).
 
 ## Seguridad
 
@@ -150,7 +172,7 @@ La IA es opcional y tiene tres niveles:
 - **Subresource Integrity:** cada librería de CDN se comprueba con su huella SHA-384; si el CDN la modificara, el navegador no la ejecuta.
 - Cabeceras `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` (solo micrófono, para el coach de inglés), `Cross-Origin-Opener-Policy` y HSTS.
 - Las copias importadas se validan (tamaño, formato y nombres de clave) antes de tocar tus datos.
-- El comando de yt-dlp se genera con la URL entre comillas simples y sin comillas internas, para que no pueda inyectar órdenes.
+- Los comandos de yt-dlp y gallery-dl se generan con la URL entre comillas simples y sin comillas internas, para que no pueda inyectar órdenes.
 
 ## Pruebas
 
@@ -176,7 +198,7 @@ braindeck/
 ├── img/                  Logo, icono y banners del inicio
 ├── tests/                Pruebas con Playwright
 └── js/
-    ├── boot.js           Aplica tema e idioma antes de pintar
+    ├── boot.js           Aplica tema e idioma antes de pintar y carga las fuentes
     ├── core.js           Router, almacenamiento, cifrado, UI, IA y categorías
     ├── i18n.js           Traducción de la interfaz al inglés
     └── *.js              Una herramienta por archivo
@@ -229,7 +251,7 @@ Después, añade `<script src="js/mi-herramienta.js"></script>` en `index.html`.
 
 ## English
 
-**BrainDeck** is a static web toolkit for creating and learning: 20+ tools for artists, self-learners and creatives. It covers study plans with `.ics` calendars, tests from books, screenshot-to-notes OCR, English speaking feedback, palettes, background removal, PDF editing, subtitles, QR codes and more.
+**BrainDeck** is a static web toolkit for creating and learning: 20+ tools for artists, self-learners and creatives. It covers study plans with `.ics` calendars and an ADHD-friendly progress tracker (opt-in flexible scheduling, one topic per day, catch-up days, guilt-free wording), tests from books, a Pinterest/Instagram downloader command builder, screenshot-to-notes OCR, English speaking feedback, palettes, background removal, PDF editing, subtitles, QR codes and more.
 
 There is no backend, no build step and no accounts: everything runs in your browser and your data stays on your device. AI is optional: in-browser models (Whisper, WebLLM, Gemini Nano) or your own Anthropic API key. Switch the interface to English in **Settings**.
 
