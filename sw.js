@@ -3,7 +3,7 @@
    - Archivos propios (HTML, CSS, JS, imágenes): primero la red (para recibir siempre la última versión) y, sin conexión, la copia guardada.
    - Librerías de CDN con versión fija y fuentes: primero la copia guardada (nunca cambian).
    - Todo lo demás (API de Claude, radios, modelos de IA, imágenes de Wikimedia) pasa directo sin guardarse. */
-const VERSION = 'bd-v5';
+const VERSION = 'bd-v6';
 const SHELL = `${VERSION}-shell`, LIBS = `${VERSION}-libs`;
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'css/fonts.css', 'css/app.css', 'img/logo.svg', 'img/icon.svg', 'img/favicon.svg',
@@ -12,7 +12,7 @@ const CORE = [
   'js/creative.js', 'js/palette.js', 'js/gesture.js', 'js/challenge.js', 'js/speak.js', 'js/bgremove.js', 'js/pdftools.js',
   'js/qr.js', 'js/compress.js', 'js/shortcuts.js', 'js/games.js', 'js/findme.js', 'js/privacy.js','js/qnotes.js', 'js/dashboard.js', 'js/radio.js',
 ];
-const LIB_HOSTS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net'];
+const LIB_HOSTS = ['cdn.jsdelivr.net'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(SHELL).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

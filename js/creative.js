@@ -8,7 +8,7 @@
 
   // ---------- temporizador de foco (web externa) ----------
   BD.tool({
-    path: '/foco', cat: 'estudio', external: 'https://focustimeisnow.netlify.app/', title: 'Temporizador de foco', short: 'Temporizador de foco', icon: BD.icon('timer'),
+    path: '/foco', cat: 'estudio', external: 'https://focustimeisnow.netlify.app/', title: L('Temporizador de foco', 'Focus timer'), short: L('Temporizador de foco', 'Focus timer'), icon: BD.icon('timer'),
     colors: ['#b8f2ff', '#22b8cf'], desc: 'Pomodoro y temporizador para concentrarte (Focus Time Is Now).',
     render(view) {
       win(view, { title: L('Temporizador de foco', 'Focus timer') }).innerHTML =

@@ -6,7 +6,7 @@
   // [servicio, cuándo se usa, qué recibe, enlace a su web o política de privacidad]
   const THIRD = () => [
     ['Netlify', L('Siempre: aloja la web', 'Always: hosts the website'), L('Tu IP y la página pedida, en sus registros de acceso', 'Your IP and the requested page, in its access logs'), 'https://www.netlify.com/privacy/'],
-    ['cdnjs / jsDelivr', L('Cuando una herramienta carga una librería (PDF, OCR, QR, gráficas…)', 'When a tool loads a library (PDF, OCR, QR, charts…)'), L('Tu IP', 'Your IP'), 'https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net'],
+    ['jsDelivr', L('Solo el OCR de capturas y la IA local (las demás librerías se sirven desde BrainDeck)', 'Only screenshot OCR and local AI (other libraries are served by BrainDeck)'), L('Tu IP', 'Your IP'), 'https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net'],
     ['Hugging Face', L('IA local: subtítulos, coach de inglés, quitar fondo, IA de texto', 'Local AI: subtitles, English coach, background removal, text AI'), L('Tu IP al descargar el modelo (una vez). Tus archivos no salen del navegador', 'Your IP when downloading the model (once). Your files never leave the browser'), 'https://huggingface.co/privacy'],
     ['SomaFM / Radio Browser', L('Radio para estudiar', 'Study radio'), L('Tu IP (y la emisora elegida)', 'Your IP (and the chosen station)'), 'https://somafm.com/'],
     ['Wikimedia Commons', L('Gesture drawing con fotos libres', 'Gesture drawing with free photos'), L('Tu IP', 'Your IP'), 'https://foundation.wikimedia.org/wiki/Policy:Privacy_policy'],

@@ -44,8 +44,8 @@
   }
 
   BD.tool({
-    path: '/comprimir', cat: 'creativo', title: 'Comprimir imágenes', short: 'Comprimir imágenes', icon: BD.icon('image'),
-    colors: ['#ffd6a5', '#ff9f1c'], desc: 'Reduce el peso de tus imágenes por calidad o a un peso exacto (KB), y quita los metadatos ocultos.',
+    path: '/comprimir', cat: 'creativo', title: L('Comprimir imágenes', 'Compress images'), short: L('Comprimir imágenes', 'Compress images'), icon: BD.icon('image'),
+    colors: ['#ffd6a5', '#ff9f1c'], desc: L('Reduce el peso de tus imágenes por calidad o a un peso exacto (KB), y quita los metadatos ocultos.', 'Shrink your images by quality or to an exact size (KB), and strip hidden metadata.'),
     render(view) {
       const body = win(view, { title: L('Comprimir imágenes', 'Compress images'), sub: L('Todo ocurre en tu navegador. Al comprimir se eliminan los metadatos ocultos (EXIF, ubicación GPS, modelo de cámara).', 'Everything happens in your browser. Compressing removes hidden metadata (EXIF, GPS location, camera model).') });
       const o = Object.assign({ fmt: 'auto', mode: 'quality', q: 75, kb: 200, max: 0, keep: true }, store.get('compress:opts', {}));

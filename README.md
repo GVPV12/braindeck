@@ -165,15 +165,17 @@ La IA es opcional y tiene tres niveles:
   - Radio: [SomaFM](https://somafm.com/) y [Radio Browser](https://www.radio-browser.info/) (y la emisora elegida) ven tu IP.
   - Gesture drawing: Wikimedia Commons. Plan de estudios: noembed.com para los títulos de videos. Quiz de países: flagcdn.com.
   - IA: los modelos se descargan de Hugging Face; Claude solo recibe lo que envías a `api.anthropic.com`.
-  - Librerías: cdnjs y jsDelivr. Alojamiento: Netlify (registros de acceso).
+  - Librerías: las de PDF, gráficas, ZIP y QR se sirven desde BrainDeck (`vendor/`); solo el OCR y la IA local (Tesseract, Transformers.js, WebLLM) vienen de jsDelivr. Alojamiento: Netlify (registros de acceso).
 - **Sin cookies ni seguimiento**, así que no hace falta aviso de cookies: lo que se guarda es solo lo necesario para que funcione.
 - **Fuentes propias:** las tipografías se sirven desde BrainDeck (`fonts/`), no desde Google, para que abrir la app no envíe tu IP a Google. Para regenerarlas: `pnpm fonts`.
 - La página **Privacidad** (`#/privacidad`) explica todo esto dentro de la app, en español e inglés.
 
 ## Seguridad
 
-- **Content Security Policy** (`_headers`): solo se ejecutan scripts propios y de cdnjs/jsDelivr; ningún script en línea, sin `eval`, sin incrustar la app en otras webs (`frame-ancestors 'none'`).
-- **Subresource Integrity:** cada librería de CDN se comprueba con su huella SHA-384; si el CDN la modificara, el navegador no la ejecuta.
+- **Content Security Policy** (`_headers`): solo se ejecutan scripts propios y de jsDelivr; ningún script en línea, sin `eval`, sin incrustar la app en otras webs (`frame-ancestors 'none'`). Los bloques `<style>` solo pueden venir de BrainDeck (`style-src-elem`), así que un estilo inyectado no se aplica.
+- **Librerías verificadas:** `pnpm vendor` descarga a `vendor/` las librerías de PDF, gráficas, ZIP y QR y comprueba su huella SHA-384 antes de guardarlas. Lo que sigue en el CDN (Tesseract) lleva Subresource Integrity: si el CDN lo modificara, el navegador no lo ejecuta.
+- **HTML seguro por defecto:** `BD.html\`…\`` escapa todo lo que se interpola; lo usan las pantallas que muestran enlaces compartidos. Los enlaces de tests y retos se validan (tipos, tamaños, formatos) antes de usarse.
+- **Pruebas de seguridad:** una prueba mete HTML malicioso en los datos guardados y en enlaces compartidos, abre todas las herramientas y falla si algo se inyecta.
 - Cabeceras `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` (solo micrófono, para el coach de inglés), `Cross-Origin-Opener-Policy` y HSTS.
 - Las copias importadas se validan (tamaño, formato y nombres de clave) antes de tocar tus datos.
 - Los comandos de yt-dlp y gallery-dl se generan con la URL entre comillas simples y sin comillas internas, para que no pueda inyectar órdenes.
@@ -202,7 +204,8 @@ braindeck/
 ├── css/fonts.css         Fuentes propias (generado por pnpm fonts)
 ├── fonts/                Archivos .woff2 (SIL OFL 1.1)
 ├── img/                  Logo, icono y banners del inicio
-├── scripts/              fetch-fonts.mjs: descarga las fuentes una vez
+├── scripts/              fetch-fonts.mjs y fetch-vendor.mjs: descargan fuentes y librerías una vez
+├── vendor/               Librerías de PDF, gráficas, ZIP y QR (generado por pnpm vendor)
 ├── tests/                Pruebas con Playwright
 └── js/
     ├── boot.js           Aplica tema e idioma antes de pintar

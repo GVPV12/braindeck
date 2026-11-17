@@ -8,7 +8,8 @@
     "lint": "eslint js sw.js",
     "test": "playwright test",
     "test:i18n": "playwright test tests/i18n.spec.js --reporter=list",
-    "fonts": "node scripts/fetch-fonts.mjs"
+    "fonts": "node scripts/fetch-fonts.mjs",
+    "vendor": "node scripts/fetch-vendor.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.48.2",

@@ -4,8 +4,9 @@ const { test } = require('@playwright/test');
 
 // Señales de español: tildes/ñ/¿¡ o palabras muy frecuentes que no existen en inglés
 const SPANISH = /[áéíóúñ¿¡]|\b(de|para|con|los|las|una|del|tus|aquí|herramienta|guardar|borrar|nuevo|nueva)\b/i;
-// Nombres propios y contenido del usuario que es normal ver en español
-const ALLOW = /BrainDeck|Grecia|Español|grevaleart|Ko-fi|VGen|Contra|Gumroad/;
+// Nombres propios y contenido del usuario que es normal ver en español.
+// «Cambiar a español» es a propósito: el botón de idioma se muestra en el idioma al que lleva.
+const ALLOW = /BrainDeck|Grecia|Español|grevaleart|Ko-fi|VGen|Contra|Gumroad|^Cambiar a español$/;
 
 test('textos sin traducir en inglés', async ({ page }, info) => {
   test.skip(info.project.name !== 'desktop', 'basta con un tamaño');

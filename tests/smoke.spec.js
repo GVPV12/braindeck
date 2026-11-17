@@ -90,6 +90,48 @@ test('los enlaces compartidos no inyectan HTML y los rotos no rompen la página'
   expect(errors).toEqual([]);
 });
 
+test('las librerías de vendor/ se cargan desde BrainDeck y funcionan', async ({ page }, info) => {
+  test.skip(info.project.name !== 'desktop', 'basta con un tamaño');
+  await page.goto('/');
+  const libs = await page.evaluate(async () => {
+    for (const k of ['chart', 'jszip', 'pdf', 'pdflib', 'qr']) await BD.loadScript(BD.LIB[k]);
+    const w = await fetch(BD.LIB.pdfWorker);
+    return { local: ['chart', 'jszip', 'pdf', 'pdfWorker', 'pdflib', 'qr'].every(k => !/^https?:/.test(BD.LIB[k])),
+      Chart: typeof Chart, JSZip: typeof JSZip, pdfjsLib: typeof pdfjsLib, PDFLib: typeof PDFLib, qrcode: typeof qrcode, worker: w.ok };
+  });
+  expect(libs).toEqual({ local: true, Chart: 'function', JSZip: 'function', pdfjsLib: 'object', PDFLib: 'object', qrcode: 'function', worker: true });
+});
+
+// Una copia importada o datos manipulados no deben poder meter HTML en ninguna pantalla
+test('datos guardados con HTML se muestran como texto en todas las herramientas', async ({ page }, info) => {
+  test.skip(info.project.name !== 'desktop', 'basta con un tamaño');
+  test.setTimeout(120_000);
+  const evil = '<img src=x id=pwned>';
+  await page.goto('/');
+  await page.evaluate(e => {
+    const t = BD.today(), s = BD.store;
+    BD.qnotes.add({ title: e, text: e, tab: 'estudio' });
+    BD.log('Prueba', e, { lines: [[e, e]] });
+    s.set('plans', [{ id: 'xp', name: e, created: Date.now(), opts: { days: [1, 2, 3, 4, 5], time: '18:00', perDay: 90, block: 45, pause: 10 },
+      sessions: [{ id: 's1', type: 'study', item: e, title: e, detail: e, dur: 30, date: t, start: 1080, end: 1110, done: false, goal: e }] }]);
+    s.set('decks', [{ id: 'xd', title: e, questions: [{ type: 'mc', q: e, options: [e, 'b'], answer: e }] }]);
+    s.set('challenges', [{ id: 'xc', name: e, prompts: [e, e], start: t, time: '19:00', done: [] }]);
+    s.set('pal:saved', [{ name: e, cols: ['#ff0000', '#00ff00'] }]);
+    s.set('wm:saved', [e]);
+    s.set('profile', { avatar: 'cat' }); BD.saveSettings({ author: e });
+  }, evil);
+  const paths = await page.evaluate(() => ['/', '/guia', '/ajustes', '/decisiones', '/plan/xp', '/test/deck/xd', '/reto/xc', ...BD.tools.filter(t => !t.external && !t.radio).map(t => t.path)]);
+  let shown = 0;
+  for (const p of paths) {
+    await page.evaluate(path => { location.hash = '#' + path; }, p);
+    await page.waitForTimeout(150);
+    await expect(page.locator('#pwned'), p).toHaveCount(0);
+    shown += await page.evaluate(e => document.body.innerText.split(e).length - 1, evil);
+  }
+  // el texto malicioso tiene que verse (como texto) en varias pantallas: si no, la prueba no estaría probando nada
+  expect(shown).toBeGreaterThan(5);
+});
+
 test('la bolsa tiene 50 items válidos en páginas de 16 y la guía los explica', async ({ page }) => {
   await page.goto('/');
   const check = await page.evaluate(() => {

@@ -155,8 +155,8 @@
   }
 
   BD.tool({
-    path: '/atajos', cat: 'media', title: 'Buscador de atajos', short: 'Atajos de teclado', icon: BD.icon('terminal'),
-    colors: ['#cbb8ff', '#7b61ff'], desc: 'Busca atajos de teclado de Windows, macOS, Linux, VS Code, Photoshop, Blender, Figma y más.',
+    path: '/atajos', cat: 'media', title: L('Buscador de atajos', 'Shortcut finder'), short: L('Atajos de teclado', 'Keyboard shortcuts'), icon: BD.icon('terminal'),
+    colors: ['#cbb8ff', '#7b61ff'], desc: L('Busca atajos de teclado de Windows, macOS, Linux, VS Code, Photoshop, Blender, Figma y más.', 'Find keyboard shortcuts for Windows, macOS, Linux, VS Code, Photoshop, Blender, Figma and more.'),
     render(view) {
       const body = win(view, { title: L('Buscador de atajos', 'Shortcut finder'), sub: L('Escribe lo que quieres hacer ("captura", "nueva capa", "duplicar") o una tecla.', 'Type what you want to do ("screenshot", "new layer", "duplicate") or a key.') });
       const ui = Object.assign({ app: 'all', os: isMac ? 'mac' : 'win', q: '' }, store.get('shortcuts:ui', {}));

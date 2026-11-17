@@ -2,7 +2,7 @@
 /* Generador de QR: enlace, texto, WiFi, contacto, email o WhatsApp, con tus colores, estilo de puntos y logo. PNG y SVG. */
 (() => {
   const { $, esc, win, store, toast, L } = BD;
-  const QRLIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+  const QRLIB = BD.LIB.qr;
   const PRESETS = [['Portfolio', 'https://grevaleart.com/'], ['Ko-fi', 'https://ko-fi.com/grevaleart'], ['VGen', 'https://vgen.co/grevaleart'], ['YouTube', 'https://www.youtube.com/@grevaleart'], ['GitHub', 'https://github.com/GVPV12']];
   const wifiEsc = s => s.replace(/([\\;,:"])/g, '\\$1');
 

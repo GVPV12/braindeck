@@ -1,7 +1,7 @@
 'use strict';
 /* Book → Test Studio: sube un libro (PDF/EPUB/TXT), genera un test online, repaso espaciado y enlace para compartir */
 (() => {
-  const { $, $$, esc, win, store, toast, uid } = BD;
+  const { $, $$, esc, html, win, store, toast, uid } = BD;
   const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w\s]/g, '').trim();
   const TF = () => BD.L(['Verdadero', 'Falso'], ['True', 'False']);
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -124,23 +124,24 @@ Devuelve SOLO un array JSON: [{"type":"mc|tf|fill","q":"pregunta","options":["..
     const next = () => {
       if (i >= questions.length) return finish();
       const q = questions[i];
-      el.innerHTML = `
-        <div class="q-head"><span class="chip">Pregunta ${i + 1}/${questions.length}</span><span class="chip good">✓ ${correct}</span></div>
+      // html``: las preguntas pueden llegar por un enlace compartido, así que todo entra escapado
+      el.innerHTML = html`
+        <div class="q-head"><span class="chip">${BD.L('Pregunta', 'Question')} ${i + 1}/${questions.length}</span><span class="chip good">✓ ${correct}</span></div>
         <div class="bar" style="margin-bottom:16px"><i style="width:${i / questions.length * 100}%"></i></div>
-        ${/^[a-z]{2}$/.test(q.flag || '') ? `<div class="flag"><img src="https://flagcdn.com/w320/${q.flag}.png" alt="Bandera" style="height:110px;border-radius:8px;border:var(--bw) solid var(--border)"></div>` : ''}
-        <div class="q-text" translate="no">${esc(q.q)}</div>
+        ${/^[a-z]{2}$/.test(q.flag || '') ? html`<div class="flag"><img src="https://flagcdn.com/w320/${q.flag}.png" alt="${BD.L('Bandera', 'Flag')}" style="height:110px;border-radius:8px;border:var(--bw) solid var(--border)"></div>` : ''}
+        <div class="q-text" translate="no">${q.q}</div>
         ${q.type === 'fill'
-          ? `<div class="row" style="margin-top:14px"><input type="text" id="qIn" placeholder="Tu respuesta" style="flex:1;min-width:180px" autocomplete="off"><button class="btn primary" id="qOk">Comprobar</button></div>`
-          : `<div class="q-opts" translate="no">${q.options.map((o, k) => `<button class="q-opt" data-k="${k}">${esc(o)}</button>`).join('')}</div>`}
+          ? html`<div class="row" style="margin-top:14px"><input type="text" id="qIn" placeholder="${BD.L('Tu respuesta', 'Your answer')}" style="flex:1;min-width:180px" autocomplete="off"><button class="btn primary" id="qOk">${BD.L('Comprobar', 'Check')}</button></div>`
+          : html`<div class="q-opts" translate="no">${q.options.map((o, k) => html`<button class="q-opt" data-k="${k}">${o}</button>`)}</div>`}
         <div id="qFb" style="margin-top:14px"></div>`;
       const answer = given => {
         const ok = norm(given) === norm(q.answer);
         if (ok) correct++; else wrong.push(q);
         onAnswer && onAnswer(i, ok, q);
         $$('.q-opt', el).forEach(b => { b.disabled = true; if (norm(b.textContent) === norm(q.answer)) b.classList.add('ok'); else if (b.textContent === given) b.classList.add('no'); });
-        $('#qFb', el).innerHTML = `
-          <div class="note-box"><b>${ok ? '¡Correcto! ✨' : `Respuesta: ${esc(q.answer)}`}</b>${q.explain ? `<div class="muted small" style="margin-top:4px">${esc(q.explain)}</div>` : ''}</div>
-          <div class="row end" style="margin-top:12px"><button class="btn primary" id="qNext">${i + 1 < questions.length ? 'Siguiente →' : 'Ver resultado'}</button></div>`;
+        $('#qFb', el).innerHTML = html`
+          <div class="note-box"><b>${ok ? BD.L('¡Correcto! ✨', 'Correct! ✨') : `${BD.L('Respuesta', 'Answer')}: ${q.answer}`}</b>${q.explain ? html`<div class="muted small" style="margin-top:4px">${q.explain}</div>` : ''}</div>
+          <div class="row end" style="margin-top:12px"><button class="btn primary" id="qNext">${i + 1 < questions.length ? BD.L('Siguiente →', 'Next →') : BD.L('Ver resultado', 'See result')}</button></div>`;
         const nb = $('#qNext', el); nb.focus(); nb.onclick = () => { i++; next(); };
       };
       if (q.type === 'fill') {
@@ -152,17 +153,17 @@ Devuelve SOLO un array JSON: [{"type":"mc|tf|fill","q":"pregunta","options":["..
     const finish = () => {
       const pct = Math.round(correct / questions.length * 100);
       onFinish && onFinish(correct, questions.length, wrong);
-      el.innerHTML = `
+      el.innerHTML = html`
         <div style="text-align:center">
           <div style="font-size:3rem">${pct >= 90 ? '🏆' : pct >= 70 ? '🌟' : pct >= 50 ? '💪' : '📚'}</div>
           <div class="result-big">${pct}%</div>
-          <p class="muted">${correct} de ${questions.length} correctas · ${esc(title)}</p>
+          <p class="muted">${correct} ${BD.L('de', 'of')} ${questions.length} ${BD.L('correctas', 'correct')} · ${title}</p>
         </div>
-        ${wrong.length ? `<h3>Para repasar</h3><div class="stack">${wrong.map(q => `<div class="card"><b>${esc(q.q)}</b><div class="muted small">Respuesta: ${esc(q.answer)}</div></div>`).join('')}</div>` : ''}
+        ${wrong.length ? html`<h3>${BD.L('Para repasar', 'To review')}</h3><div class="stack">${wrong.map(q => html`<div class="card"><b>${q.q}</b><div class="muted small">${BD.L('Respuesta', 'Answer')}: ${q.answer}</div></div>`)}</div>` : ''}
         <div class="row" style="margin-top:18px;justify-content:center">
-          <button class="btn primary" id="qAgain">Repetir</button>
-          ${wrong.length ? '<button class="btn ghost" id="qWrong">Solo los fallos</button>' : ''}
-          ${onExit ? '<button class="btn ghost" id="qExit">Salir</button>' : ''}
+          <button class="btn primary" id="qAgain">${BD.L('Repetir', 'Retry')}</button>
+          ${wrong.length ? html`<button class="btn ghost" id="qWrong">${BD.L('Solo los fallos', 'Only mistakes')}</button>` : ''}
+          ${onExit ? html`<button class="btn ghost" id="qExit">${BD.L('Salir', 'Exit')}</button>` : ''}
         </div>`;
       const w = [...wrong];
       $('#qAgain', el).onclick = () => BD.runQuiz(el, shuffle(questions), { title, onAnswer, onFinish, onExit });
@@ -231,7 +232,7 @@ Devuelve SOLO un array JSON: [{"type":"mc|tf|fill","q":"pregunta","options":["..
           <div class="stack">
             <div id="sDrop"></div>
             <details><summary class="muted">…o pega el texto</summary>
-              <textarea id="sPaste" placeholder="Pega aquí tus apuntes o un capítulo" style="margin-top:8px"></textarea>
+              <textarea id="sPaste" placeholder="${BD.L('Pega aquí tus apuntes o un capítulo', 'Paste your notes or a chapter here')}" style="margin-top:8px"></textarea>
               <button class="btn ghost sm" id="sUsePaste" style="margin-top:8px">Usar este texto</button>
             </details>
             <div class="muted small" id="sStatus"></div>

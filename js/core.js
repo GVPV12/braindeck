@@ -4,6 +4,13 @@ const BD = window.BD = (() => {
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // html`…`: plantilla que escapa TODO lo que se interpola, salvo lo que ya es HTML seguro (otra plantilla html`` o raw()).
+  // Así olvidar un esc() deja de ser posible: el valor del usuario siempre entra como texto.
+  //   el.innerHTML = html`<b>${nombre}</b> ${raw(BD.icon('link'))} ${lista.map(x => html`<li>${x}</li>`)}`;
+  class SafeHTML { constructor(s) { this.s = s; } toString() { return this.s; } }
+  const raw = s => new SafeHTML(String(s ?? ''));
+  const part = v => v instanceof SafeHTML ? v.s : Array.isArray(v) ? v.map(part).join('') : v == null || v === false ? '' : esc(v);
+  const html = (strings, ...vals) => new SafeHTML(strings.reduce((out, s, i) => out + s + (i < vals.length ? part(vals[i]) : ''), ''));
   // decodeURIComponent que nunca lanza: un «%» suelto en un enlace o archivo devuelve el texto tal cual
   const decode = s => { try { return decodeURIComponent(s); } catch { return s; } };
   const uid = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-5);
@@ -251,14 +258,10 @@ const BD = window.BD = (() => {
 
   // ---------- librerías externas bajo demanda ----------
   const loaded = {};
-  // Integridad (SRI): el navegador comprueba la huella de cada librería y no la ejecuta si el CDN la cambió
+  // Integridad (SRI) para lo que aún viene de un CDN: el navegador no lo ejecuta si el CDN lo cambió.
+  // Las librerías de vendor/ se sirven desde BrainDeck (verificadas con su huella al descargarlas: pnpm vendor).
   const SRI = {
-    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js': 'sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD',
-    'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js': 'sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG',
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js': 'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e',
     'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js': 'sha384-GJqSu7vueQ9qN0E9yLPb3Wtpd7OrgK8KmYzC8T1IysG1bcvxvIO4qtYR/D3A991F',
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js': 'sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI',
-    'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js': 'sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1',
   };
   function loadScript(src) {
     if (!loaded[src]) loaded[src] = new Promise((ok, ko) => {
@@ -270,12 +273,15 @@ const BD = window.BD = (() => {
     return loaded[src];
   }
   const LIB = {
-    chart: 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
-    jszip: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
-    pdf: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-    pdfWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+    chart: 'vendor/chart.umd.min.js',
+    jszip: 'vendor/jszip.min.js',
+    pdf: 'vendor/pdf.min.js',
+    pdfWorker: 'vendor/pdf.worker.min.js',
+    pdflib: 'vendor/pdf-lib.min.js',
+    qr: 'vendor/qrcode.min.js',
+    // Tesseract, Transformers.js y WebLLM siguen en el CDN: descargan además motores WebAssembly y modelos de decenas o
+    // cientos de MB desde sus propios servidores, así que copiarlos aquí no evitaría esas conexiones y llenaría el repositorio.
     tesseract: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',
-    pdflib: 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js',
     transformers: 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2', // módulo ES (import dinámico)
   };
   async function zipAndDownload(files, name) {
@@ -432,6 +438,7 @@ const BD = window.BD = (() => {
     palette: '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.7 1.7-1.7h2c3 0 5.5-2.5 5.5-5.5C22 6 17.5 2 12 2z"/>',
     link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
     shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',
     files: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5M12 18v-6M9 15h6"/>',
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
     captions: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/>',
@@ -528,7 +535,7 @@ const BD = window.BD = (() => {
   const num = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : 0; };
 
   return {
-    $, $$, esc, decode, uid, today, store, storeReady, vault, settings, saveSettings, route, tool, tools, go, render, win, toast, copy, seg, dropzone,
+    $, $$, esc, html, raw, decode, uid, today, store, storeReady, vault, settings, saveSettings, route, tool, tools, go, render, win, toast, copy, seg, dropzone,
     fmtBytes, download, readDataURL, readText, readBuffer, loadImage, canvasBlob, baseName, loadScript, LIB, zipAndDownload,
     cssVar, setupTransformers, stats, track, hasAI, ai, imageBlock, localAI, anyAI, log, THEMES, setTheme, money, num, icon,
     lang, L, locale, setLang, layout, saveLayout, buildNav, tr: s => s, // tr lo reemplaza i18n.js

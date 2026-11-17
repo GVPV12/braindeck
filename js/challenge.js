@@ -1,7 +1,7 @@
 'use strict';
 /* Reto de 30 días (estilo Inktober): lista de temas diarios + calendario .ics + póster para compartir + seguimiento. */
 (() => {
-  const { $, esc, win, store, toast, uid, today, L } = BD;
+  const { $, esc, html, raw, win, store, toast, uid, today, L } = BD;
   const dateOf = s => new Date(s + 'T12:00');
   const addDays = (s, n) => { const d = dateOf(s); d.setDate(d.getDate() + n); return today(d); };
   const all = () => store.get('challenges', []);
@@ -216,27 +216,28 @@
     const draw = () => {
       const t = today(), day = Math.floor((dateOf(t) - dateOf(ch.start)) / 864e5);
       const pct = Math.round(ch.done.length / ch.prompts.length * 100);
-      body.innerHTML = `
-        ${shared ? `<div class="note-box" style="margin-bottom:14px">${L('Te compartieron este reto.', 'Someone shared this challenge with you.')} <button class="btn primary sm" id="rcAdopt">${L('Unirme', 'Join')}</button></div>` : ''}
+      // html``: todo lo que viene del reto (que puede llegar por un enlace compartido) entra escapado
+      body.innerHTML = html`
+        ${shared ? html`<div class="note-box" style="margin-bottom:14px">${L('Te compartieron este reto.', 'Someone shared this challenge with you.')} <button class="btn primary sm" id="rcAdopt">${L('Unirme', 'Join')}</button></div>` : ''}
         <div class="grid g3">
-          <div class="card stat"><b>${day >= 0 && day < ch.prompts.length ? esc(ch.prompts[day]) : day < 0 ? L('Aún no empieza', 'Not started yet') : L('Terminado', 'Finished')}</b><span>${L('tema de hoy', 'today\'s prompt')}</span></div>
+          <div class="card stat"><b>${day >= 0 && day < ch.prompts.length ? ch.prompts[day] : day < 0 ? L('Aún no empieza', 'Not started yet') : L('Terminado', 'Finished')}</b><span>${L('tema de hoy', 'today\'s prompt')}</span></div>
           <div class="card stat"><b>${ch.done.length}/${ch.prompts.length}</b><span>${L('días hechos', 'days done')}</span><div class="bar" style="margin-top:8px"><i style="width:${pct}%"></i></div></div>
-          <div class="card stat"><b>${esc(ch.time)}</b><span>${L('recordatorio', 'reminder')}</span></div>
+          <div class="card stat"><b>${ch.time}</b><span>${L('recordatorio', 'reminder')}</span></div>
         </div>
         <div class="row" style="margin:16px 0">
           <button class="btn primary" id="rcIcs">📅 ${L('Calendario (.ics)', 'Calendar (.ics)')}</button>
           <button class="btn ghost" id="rcPng">🖼️ ${L('Póster para redes', 'Poster for socials')}</button>
-          <button class="btn ghost" id="rcShare">${BD.icon('link')} ${L('Compartir reto', 'Share challenge')}</button>
+          <button class="btn ghost" id="rcShare">${raw(BD.icon('link'))} ${L('Compartir reto', 'Share challenge')}</button>
           <button class="btn ghost" id="rcCopy">${L('Copiar lista', 'Copy list')}</button>
         </div>
         <div class="reto-grid">${ch.prompts.map((p, i) => {
-          const d = addDays(ch.start, i);
-          return `<label class="reto-day ${ch.done.includes(i) ? 'done' : ''} ${d === t ? 'today' : ''}">
-            <input type="checkbox" data-d="${i}" ${ch.done.includes(i) ? 'checked' : ''} ${shared ? 'disabled' : ''}>
-            <span class="reto-n">${i + 1}</span><span class="reto-p">${esc(p)}</span>
+          const d = addDays(ch.start, i), done = ch.done.includes(i);
+          return html`<label class="reto-day ${done ? 'done' : ''} ${d === t ? 'today' : ''}">
+            <input type="checkbox" data-d="${i}" ${done ? raw('checked') : ''} ${shared ? raw('disabled') : ''}>
+            <span class="reto-n">${i + 1}</span><span class="reto-p">${p}</span>
             <span class="muted small">${dateOf(d).toLocaleDateString(BD.locale(), { weekday: 'short', day: 'numeric', month: 'short' })}</span></label>`;
-        }).join('')}</div>
-        ${shared ? '' : `<div class="row" style="margin-top:18px"><span class="spacer"></span><button class="btn ghost danger" id="rcDel">${L('Borrar reto', 'Delete challenge')}</button></div>`}`;
+        })}</div>
+        ${shared ? '' : html`<div class="row" style="margin-top:18px"><span class="spacer"></span><button class="btn ghost danger" id="rcDel">${L('Borrar reto', 'Delete challenge')}</button></div>`}`;
     };
     const persist = () => { const a = all(), i = a.findIndex(x => x.id === ch.id); if (i >= 0) { a[i] = ch; saveAll(a); } };
     body.onchange = e => {

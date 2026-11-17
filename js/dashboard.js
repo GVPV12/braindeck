@@ -252,9 +252,9 @@
     ['MEM', L('Memoria', 'Memory'), L('Notas guardadas: notas rápidas más notas desde capturas', 'Saved notes: quick notes plus notes from screenshots'), c.qnotes + c.notesN, 5],
     ['ART', L('Arte', 'Art'), L('Usos de herramientas de imágenes y arte', 'Uses of image and art tools'), c.cat.creativo || 0, 4],
     ['UTL', L('Utilidades', 'Utilities'), L('Usos de utilidades: PDF, video, QR, atajos…', 'Uses of utilities: PDF, video, QR, shortcuts…'), c.cat.media || 0, 4],
-    ['ORO', L('Dinero', 'Money'), L('Usos de la calculadora de comisión y el plan de ahorro', 'Uses of the commission calculator and savings plan'), c.cat.dinero || 0, 3],
+    [L('ORO', 'GLD'), L('Dinero', 'Money'), L('Usos de la calculadora de comisión y el plan de ahorro', 'Uses of the commission calculator and savings plan'), c.cat.dinero || 0, 3],
     ['ZEN', L('Calma', 'Calm'), L('Minutos escuchando la radio para estudiar', 'Minutes listening to the study radio'), c.radioMin, 30],
-    ['CON', L('Constancia', 'Consistency'), L('Días distintos en los que abriste BrainDeck', 'Different days you opened BrainDeck'), c.daysActive, 3],
+    [L('CON', 'CST'), L('Constancia', 'Consistency'), L('Días distintos en los que abriste BrainDeck', 'Different days you opened BrainDeck'), c.daysActive, 3],
   ];
 
   // ---------- piezas ----------
