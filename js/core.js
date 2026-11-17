@@ -429,6 +429,7 @@ const BD = window.BD = (() => {
     globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/>',
     palette: '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.7 1.7-1.7h2c3 0 5.5-2.5 5.5-5.5C22 6 17.5 2 12 2z"/>',
     link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+    shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
     files: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5M12 18v-6M9 15h6"/>',
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
     captions: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/>',
@@ -479,7 +480,8 @@ const BD = window.BD = (() => {
       `<div class="nav-label">Más</div>` +
       main.filter(t => t.group === 'extra').map(link).join('') +
       item('/ajustes', '/ajustes', (BD.appIcon && BD.appIcon('/ajustes')) || icon('settings'), 'Ajustes') +
-      item('/findme', '/findme', icon('link'), L('Estoy en', 'Find me on'));
+      item('/findme', '/findme', icon('link'), L('Estoy en', 'Find me on')) +
+      item('/privacidad', '/privacidad', icon('shield'), L('Privacidad', 'Privacy'));
     $('#bottomNav').innerHTML =
       item('/', '/', icon('home'), 'Inicio') + item('/herramientas', '/herramientas', icon('gamepad'), 'Apps') +
       item('/plan', '/plan', icon('calendar'), 'Plan') + item('/ajustes', '/ajustes', icon('settings'), 'Ajustes');

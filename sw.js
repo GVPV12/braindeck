@@ -3,16 +3,16 @@
    - Archivos propios (HTML, CSS, JS, imágenes): primero la red (para recibir siempre la última versión) y, sin conexión, la copia guardada.
    - Librerías de CDN con versión fija y fuentes: primero la copia guardada (nunca cambian).
    - Todo lo demás (API de Claude, radios, modelos de IA, imágenes de Wikimedia) pasa directo sin guardarse. */
-const VERSION = 'bd-v4';
+const VERSION = 'bd-v5';
 const SHELL = `${VERSION}-shell`, LIBS = `${VERSION}-libs`;
 const CORE = [
-  './', 'index.html', 'manifest.webmanifest', 'css/app.css', 'img/logo.svg', 'img/icon.svg', 'img/favicon.svg',
+  './', 'index.html', 'manifest.webmanifest', 'css/fonts.css', 'css/app.css', 'img/logo.svg', 'img/icon.svg', 'img/favicon.svg',
   'js/boot.js', 'js/core.js', 'js/pixel.js', 'js/i18n.js', 'js/home.js', 'js/commission.js', 'js/watermark.js', 'js/notes.js',
   'js/progress.js', 'js/tracker.js', 'js/study.js', 'js/savings.js', 'js/convert.js', 'js/pdfmerge.js', 'js/videodl.js', 'js/social.js', 'js/subtitles.js',
   'js/creative.js', 'js/palette.js', 'js/gesture.js', 'js/challenge.js', 'js/speak.js', 'js/bgremove.js', 'js/pdftools.js',
-  'js/qr.js', 'js/compress.js', 'js/shortcuts.js', 'js/games.js', 'js/findme.js', 'js/qnotes.js', 'js/dashboard.js', 'js/radio.js',
+  'js/qr.js', 'js/compress.js', 'js/shortcuts.js', 'js/games.js', 'js/findme.js', 'js/privacy.js','js/qnotes.js', 'js/dashboard.js', 'js/radio.js',
 ];
-const LIB_HOSTS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
+const LIB_HOSTS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(SHELL).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
@@ -33,7 +33,7 @@ self.addEventListener('fetch', e => {
     return;
   }
   // Solo librerías con versión fija en la URL (las que no tienen @x.y o /x.y.z/ podrían cambiar)
-  const pinned = /@\d|\/\d+\.\d+/.test(url.pathname) || url.hostname.startsWith('fonts.');
+  const pinned = /@\d|\/\d+\.\d+/.test(url.pathname);
   if (LIB_HOSTS.includes(url.hostname) && pinned) {
     e.respondWith(caches.open(LIBS).then(async c => {
       const hit = await c.match(req);

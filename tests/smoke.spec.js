@@ -31,7 +31,7 @@ test('todas las herramientas abren sin errores', async ({ page }) => {
   await page.goto('/');
   const paths = await page.evaluate(() => BD.tools.filter(t => !t.external && !t.radio).map(t => t.path));
   expect(paths.length).toBeGreaterThan(20);
-  for (const p of [...paths, '/herramientas', '/ajustes', '/findme']) {
+  for (const p of [...paths, '/herramientas', '/ajustes', '/findme', '/privacidad']) {
     await page.evaluate(path => { location.hash = '#' + path; }, p);
     await expect(page.locator('#view > *').first(), p).toBeVisible();
     await expect(page.locator('#view'), p).not.toContainText('Ups 😵');

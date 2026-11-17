@@ -101,6 +101,7 @@ BrainDeck reúne en un solo lugar más de 20 herramientas que normalmente estar�
 | Minijuegos | `#/juegos` | Morse con sonido, quiz, ahorcado, dibujo ASCII, historia interactiva y quiz de países. |
 | Decision Log | `#/decisiones` | Historial de cálculos y planes guardados. |
 | Ajustes | `#/ajustes` | Idioma, estilo, IA y copia de seguridad de tus datos. |
+| Privacidad | `#/privacidad` | Qué se guarda, dónde, y qué servicios externos ven tu IP y cuándo. |
 
 ## Empezar
 
@@ -162,9 +163,12 @@ La IA es opcional y tiene tres niveles:
 - La API key nunca se exporta. Puedes guardarla en el navegador o usarla **solo durante la sesión** (se olvida al cerrar la pestaña y nunca se escribe en disco).
 - **Servicios de terceros**, solo cuando los usas:
   - Radio: [SomaFM](https://somafm.com/) y [Radio Browser](https://www.radio-browser.info/) (y la emisora elegida) ven tu IP.
-  - Gesture drawing: Wikimedia Commons. Libro → test: noembed.com para los títulos de videos.
+  - Gesture drawing: Wikimedia Commons. Plan de estudios: noembed.com para los títulos de videos. Quiz de países: flagcdn.com.
   - IA: los modelos se descargan de Hugging Face; Claude solo recibe lo que envías a `api.anthropic.com`.
-  - Librerías: cdnjs y jsDelivr; las fuentes, Google Fonts (se cargan sin bloquear la página y quedan guardadas para abrir sin conexión).
+  - Librerías: cdnjs y jsDelivr. Alojamiento: Netlify (registros de acceso).
+- **Sin cookies ni seguimiento**, así que no hace falta aviso de cookies: lo que se guarda es solo lo necesario para que funcione.
+- **Fuentes propias:** las tipografías se sirven desde BrainDeck (`fonts/`), no desde Google, para que abrir la app no envíe tu IP a Google. Para regenerarlas: `pnpm fonts`.
+- La página **Privacidad** (`#/privacidad`) explica todo esto dentro de la app, en español e inglés.
 
 ## Seguridad
 
@@ -195,10 +199,13 @@ braindeck/
 ├── manifest.webmanifest  Datos de la app instalable
 ├── _headers              Cabeceras de seguridad (Netlify)
 ├── css/app.css           Temas (paper, neo, cosmos, frost) y componentes
+├── css/fonts.css         Fuentes propias (generado por pnpm fonts)
+├── fonts/                Archivos .woff2 (SIL OFL 1.1)
 ├── img/                  Logo, icono y banners del inicio
+├── scripts/              fetch-fonts.mjs: descarga las fuentes una vez
 ├── tests/                Pruebas con Playwright
 └── js/
-    ├── boot.js           Aplica tema e idioma antes de pintar y carga las fuentes
+    ├── boot.js           Aplica tema e idioma antes de pintar
     ├── core.js           Router, almacenamiento, cifrado, UI, IA y categorías
     ├── i18n.js           Traducción de la interfaz al inglés
     └── *.js              Una herramienta por archivo
@@ -243,6 +250,7 @@ Después, añade `<script src="js/mi-herramienta.js"></script>` en `index.html`.
 - Qwen 2.5 (Apache 2.0).
 
 **Recursos:**
+- Fuentes: Inter, JetBrains Mono, Outfit, Pixelify Sans, Space Grotesk, Courier Prime y Silkscreen ([Google Fonts](https://fonts.google.com), SIL OFL 1.1), servidas desde el propio proyecto.
 - Íconos: trazos estilo [Lucide](https://lucide.dev) (ISC).
 - Fotos del banner: [Unsplash](https://unsplash.com) (Rohit Choudhari, Warren Hansen, Willow XK, Max Zhdanov, Li Zhang, Christian Boragine, Yue Ma, Alissa Kennedy).
 - Referencias de poses: [Wikimedia Commons](https://commons.wikimedia.org), con el crédito de cada foto.

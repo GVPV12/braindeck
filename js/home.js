@@ -226,7 +226,8 @@
         <hr class="sep">
         <h3>${L('Importar y exportar datos', 'Import & export data')}</h3>
         <p class="muted small">${L('Todo se guarda solo en este navegador. Exporta una copia de seguridad o para pasarla a otro dispositivo o navegador, e impórtala allí. La API key nunca se exporta.',
-          'Everything is stored only in this browser. Export a backup, or to move it to another device or browser, and import it there. The API key is never exported.')}</p>
+          'Everything is stored only in this browser. Export a backup, or to move it to another device or browser, and import it there. The API key is never exported.')}
+          <a href="#/privacidad">${L('Ver la política de privacidad', 'See the privacy policy')}</a></p>
         <div class="card stack">
           <div class="row"><b style="flex:1">${L('¿Qué quieres exportar?', 'What do you want to export?')}</b>
             <button class="btn ghost sm" data-gall="1">${L('Todo', 'All')}</button><button class="btn ghost sm" data-gall="0">${L('Nada', 'None')}</button></div>

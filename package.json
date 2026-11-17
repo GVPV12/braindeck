@@ -7,7 +7,8 @@
     "serve": "http-server -p 4173 -c-1 --silent .",
     "lint": "eslint js sw.js",
     "test": "playwright test",
-    "test:i18n": "playwright test tests/i18n.spec.js --reporter=list"
+    "test:i18n": "playwright test tests/i18n.spec.js --reporter=list",
+    "fonts": "node scripts/fetch-fonts.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.48.2",
