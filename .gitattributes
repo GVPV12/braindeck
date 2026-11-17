@@ -1,0 +1,4 @@
+# Archivos de terceros verificados por su huella (pnpm vendor / pnpm fonts): Git no debe cambiar ni un byte,
+# ni siquiera los saltos de línea en Windows.
+vendor/** -text
+fonts/** -text

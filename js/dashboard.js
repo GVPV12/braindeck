@@ -261,7 +261,7 @@
   // help: ruta de la guía que abre el botón «?» de la ventana
   const dw = (cls, title, body, extra = '', help = '') => `
     <section class="dw ${cls}" ${extra}>
-      <div class="dw-bar"><span>${title}</span>${help ? `<a class="dw-help" href="#/guia?s=${help}" title="${L('¿Qué significa?', 'What does it mean?')}" aria-label="${L('Ayuda: qué significa cada cosa', 'Help: what each thing means')}">?</a>` : ''}<i class="dw-dots" aria-hidden="true"><b></b><b></b></i></div>
+      <div class="dw-bar"><span>${title}</span>${help ? `<a class="dw-help" href="#/guia?s=${help}" title="${L('¿Qué significa?', 'What does it mean?')}" aria-label="${L('Ayuda: qué significa cada cosa', 'Help: what each thing means')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 9a3 3 0 1 1 4.2 2.75c-.75.33-1.2 1.07-1.2 1.9V14M12 18h.01"/></svg></a>` : ''}<i class="dw-dots" aria-hidden="true"><b></b><b></b></i></div>
       <div class="dw-body">${body}</div>
     </section>`;
   const slot = (it, got, fresh) => got.has(it.id)
