@@ -2,7 +2,7 @@
 /* Descargar videos de forma segura: arma el comando exacto de yt-dlp (software libre, sin anuncios ni instaladores raros)
    con la calidad y formato elegidos. Una página web no puede bajar videos de YouTube & co. por sí sola (CORS y firmas). */
 (() => {
-  const { $, $$, esc, win, store, toast, L } = BD;
+  const { $, esc, win, store, toast, L } = BD;
 
   const PLATFORMS = [
     [/youtu\.?be/, 'YouTube'], [/vimeo\.com/, 'Vimeo'], [/bilibili\.(com|tv)|b23\.tv/, 'Bilibili'], [/dailymotion\.com|dai\.ly/, 'Dailymotion'],
@@ -128,7 +128,7 @@
             const res = await fetch(u); if (!res.ok) throw new Error(res.status);
             const total = +res.headers.get('content-length') || 0, reader = res.body.getReader(), parts = []; let got = 0;
             for (;;) { const { done, value } = await reader.read(); if (done) break; parts.push(value); got += value.length; st.textContent = total ? Math.round(got / total * 100) + '%' : BD.fmtBytes(got); }
-            BD.download(new Blob(parts, { type: res.headers.get('content-type') || '' }), decodeURIComponent(new URL(u).pathname.split('/').pop()) || 'video');
+            BD.download(new Blob(parts, { type: res.headers.get('content-type') || '' }), BD.decode(new URL(u).pathname.split('/').pop()) || 'video');
             st.textContent = '✓';
           } catch {
             // El servidor no permite descargas desde otra web (CORS): se abre para guardarlo con clic derecho

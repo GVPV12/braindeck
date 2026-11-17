@@ -140,7 +140,7 @@
             <div class="grid g2">
               <div class="field"><span>${L('Duración', 'Length')}</span><div id="rDays"></div></div>
               <label class="field"><span>${L('Empieza el', 'Starts on')}</span><input type="date" id="rStart" value="${o.start}"></label>
-              <label class="field"><span>${L('Recordatorio diario', 'Daily reminder')}</span><input type="time" id="rTime" value="${o.time}"></label>
+              <label class="field"><span>${L('Recordatorio diario', 'Daily reminder')}</span><input type="time" id="rTime" value="${esc(o.time)}"></label>
               <label class="field"><span>${L('Minutos al día', 'Minutes per day')}</span><input type="number" id="rMins" min="5" step="5" value="${o.mins}"></label>
             </div>
             <div class="row"><button class="btn primary" id="rGen">🎲 ${L('Generar lista', 'Generate list')}</button><button class="btn ghost" id="rAI">✨ ${L('Con IA', 'With AI')}</button><span class="muted small" id="rSt"></span></div>
@@ -221,12 +221,12 @@
         <div class="grid g3">
           <div class="card stat"><b>${day >= 0 && day < ch.prompts.length ? esc(ch.prompts[day]) : day < 0 ? L('Aún no empieza', 'Not started yet') : L('Terminado', 'Finished')}</b><span>${L('tema de hoy', 'today\'s prompt')}</span></div>
           <div class="card stat"><b>${ch.done.length}/${ch.prompts.length}</b><span>${L('días hechos', 'days done')}</span><div class="bar" style="margin-top:8px"><i style="width:${pct}%"></i></div></div>
-          <div class="card stat"><b>${ch.time}</b><span>${L('recordatorio', 'reminder')}</span></div>
+          <div class="card stat"><b>${esc(ch.time)}</b><span>${L('recordatorio', 'reminder')}</span></div>
         </div>
         <div class="row" style="margin:16px 0">
           <button class="btn primary" id="rcIcs">📅 ${L('Calendario (.ics)', 'Calendar (.ics)')}</button>
           <button class="btn ghost" id="rcPng">🖼️ ${L('Póster para redes', 'Poster for socials')}</button>
-          <button class="btn ghost" id="rcShare">🔗 ${L('Compartir reto', 'Share challenge')}</button>
+          <button class="btn ghost" id="rcShare">${BD.icon('link')} ${L('Compartir reto', 'Share challenge')}</button>
           <button class="btn ghost" id="rcCopy">${L('Copiar lista', 'Copy list')}</button>
         </div>
         <div class="reto-grid">${ch.prompts.map((p, i) => {
@@ -261,8 +261,13 @@
   }
   BD.route('/reto/share/:data', {
     title: 'Reto de 30 días', render(v, { data }) {
-      let d; try { d = JSON.parse(unb64url(data)); } catch { win(v, { title: L('Enlace roto', 'Broken link'), back: '#/reto' }); return; }
-      view(v, { id: 'shared', name: d.n, prompts: d.p, start: d.s, time: d.t, done: [] }, true);
+      // El enlace lo puede escribir cualquiera: se valida la forma de cada campo antes de usarlo
+      let d; try { d = JSON.parse(unb64url(data)); } catch { d = null; }
+      const str = (x, max) => typeof x === 'string' ? x.slice(0, max) : '';
+      const ok = d && typeof d.n === 'string' && Array.isArray(d.p) && d.p.length && d.p.length <= 366 && d.p.every(p => typeof p === 'string');
+      if (!ok) { win(v, { title: L('Enlace roto', 'Broken link'), back: '#/reto' }); return; }
+      view(v, { id: 'shared', name: str(d.n, 120), prompts: d.p.map(p => p.slice(0, 300)),
+        start: /^\d{4}-\d{2}-\d{2}$/.test(d.s) ? d.s : today(), time: /^\d{2}:\d{2}$/.test(d.t) ? d.t : '09:00', done: [] }, true);
     },
   });
   BD.route('/reto/:id', {

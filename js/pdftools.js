@@ -1,7 +1,7 @@
 'use strict';
 /* Editar PDF: reordenar, girar, quitar, dividir, numerar páginas, firmar y comprimir. pdf.js para ver, pdf-lib para escribir. Nada se sube. */
 (() => {
-  const { $, $$, esc, win, store, toast, L, fmtBytes } = BD;
+  const { $, esc, win, store, toast, L, fmtBytes } = BD;
 
   function ranges(text, total) {
     return text.split(/[,;]+/).map(p => p.trim()).filter(Boolean).map(p => {
@@ -19,7 +19,7 @@
       const body = win(view, { title: L('Editar PDF', 'Edit PDF'), sub: L(
         'Abre un PDF y verás sus páginas: arrástralas para reordenar, gíralas o quítalas. Luego guarda, divide en varios archivos, añade números de página o tu firma, o comprímelo. Todo en tu navegador.',
         'Open a PDF to see its pages: drag to reorder, rotate or remove them. Then save, split into several files, add page numbers or your signature, or compress it. All in your browser.') });
-      let bytes = null, name = 'documento', pages = [], sigURL = null, sigMode = 'draw';
+      let bytes = null, name = 'documento', pages = [], sigMode = 'draw';
       const o = Object.assign({ numbers: false, numPos: 'bc', numFmt: 'n', sign: false, sigPage: 'last', sigPos: 'br', sigW: 25, dpi: 110, q: 70, split: 'each', ranges: '' }, store.get('pdft:opts', {}));
 
       body.innerHTML = `
@@ -184,7 +184,7 @@
           const img = await out.embedPng(data);
           const targets = o.sigPage === 'all' ? all : [o.sigPage === 'first' ? all[0] : all[N - 1]];
           targets.forEach(pg => {
-            const { w, h } = box(pg), sw = w * o.sigW / 100, sh = sw * img.height / img.width, m = w * .06;
+            const { w } = box(pg), sw = w * o.sigW / 100, sh = sw * img.height / img.width, m = w * .06;
             const X = o.sigPos === 'bl' ? m : o.sigPos === 'bc' ? (w - sw) / 2 : w - m - sw;
             const p = place(pg, X, m, sw, sh);
             pg.drawImage(img, { x: p.x, y: p.y, width: sw, height: sh, rotate: p.rotate });

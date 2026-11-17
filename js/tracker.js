@@ -68,7 +68,7 @@
           <a class="icon-btn" href="#/" title="${L('Volver', 'Back')}" aria-label="${L('Volver', 'Back')}">←</a>
           <h1>${L('Tracker de progreso', 'Progress tracker')}</h1>
           <button class="btn ghost sm tk-calm-btn" id="tkCalm" aria-pressed="false" title="${L('Muestra solo lo esencial: menos cosas en pantalla, sin animaciones', 'Shows only the essentials: fewer things on screen, no animations')}">🌙 <span>${L('Modo calma', 'Calm mode')}</span></button>
-          <button class="icon-btn" id="tkShare" title="${L('Copiar enlace a esta herramienta', 'Copy link to this tool')}" aria-label="${L('Copiar enlace', 'Copy link')}">🔗</button>
+          <button class="icon-btn" id="tkShare" title="${L('Copiar enlace a esta herramienta', 'Copy link to this tool')}" aria-label="${L('Copiar enlace', 'Copy link')}">${BD.icon('link')}</button>
           <a class="icon-btn" href="#/" title="${L('Cerrar', 'Close')}" aria-label="${L('Cerrar', 'Close')}">✕</a>
         </div>
         <section class="tk" translate="no"></section>`;

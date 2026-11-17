@@ -312,6 +312,9 @@ hr + h3, hr + h4 { margin-top: 0; }
   background: var(--panel); border: var(--bw) solid var(--border); color: var(--text); font-size: 1.05rem; text-decoration: none;
   backdrop-filter: blur(12px); transition: box-shadow .2s, transform .12s;
 }
+button.icon-btn { padding: 0; line-height: 1; font-family: inherit; }
+.icon-btn .ic { width: 18px; height: 18px; }
+.btn .ic { width: 16px; height: 16px; }
 .icon-btn:hover { box-shadow: var(--glow); }
 .icon-btn:active { transform: scale(.92); }
 [data-theme="neo"] .icon-btn { border-radius: 8px; background: #fff; box-shadow: 3px 3px 0 var(--border); width: 34px; height: 34px; }

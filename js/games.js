@@ -1,7 +1,7 @@
 'use strict';
 /* Silly games: morse, quiz, ahorcado, dibujo ASCII, historia interactiva, quiz de países */
 (() => {
-  const { $, $$, esc, win, store, toast } = BD;
+  const { $, esc, win, store, toast } = BD;
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pick = a => a[Math.floor(Math.random() * a.length)];
   const deaccent = s => s.replace(/ñ/g, '\u0001').replace(/Ñ/g, '\u0002').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\u0001/g, 'ñ').replace(/\u0002/g, 'Ñ');

@@ -4,6 +4,8 @@ const BD = window.BD = (() => {
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // decodeURIComponent que nunca lanza: un «%» suelto en un enlace o archivo devuelve el texto tal cual
+  const decode = s => { try { return decodeURIComponent(s); } catch { return s; } };
   const uid = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-5);
   const today = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -143,7 +145,7 @@ const BD = window.BD = (() => {
     let match = null; const params = {};
     for (const r of routes) {
       const m = path.match(r.re);
-      if (m) { match = r; r.keys.forEach((k, i) => params[k] = decodeURIComponent(m[i + 1])); break; }
+      if (m) { match = r; r.keys.forEach((k, i) => params[k] = decode(m[i + 1])); break; }
     }
     if (!match) match = routes.find(r => r.path === '/');
     const view = $('#view');
@@ -175,7 +177,7 @@ const BD = window.BD = (() => {
         <a class="icon-btn" href="${back}" title="Volver" aria-label="Volver">←</a>
         <span class="wb-deco">▶</span>
         <h1>${esc(title)}</h1>
-        <button class="icon-btn" data-share title="Copiar enlace a esta herramienta" aria-label="Copiar enlace">🔗</button>
+        <button type="button" class="icon-btn" data-share title="${L('Copiar enlace a esta herramienta', 'Copy link to this tool')}" aria-label="${L('Copiar enlace', 'Copy link')}">${icon('link')}</button>
         <a class="icon-btn" href="#/" title="Cerrar" aria-label="Cerrar">✕</a>
       </div>
       ${sub ? `<p class="win-sub">${sub}</p>` : ''}
@@ -526,7 +528,7 @@ const BD = window.BD = (() => {
   const num = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : 0; };
 
   return {
-    $, $$, esc, uid, today, store, storeReady, vault, settings, saveSettings, route, tool, tools, go, render, win, toast, copy, seg, dropzone,
+    $, $$, esc, decode, uid, today, store, storeReady, vault, settings, saveSettings, route, tool, tools, go, render, win, toast, copy, seg, dropzone,
     fmtBytes, download, readDataURL, readText, readBuffer, loadImage, canvasBlob, baseName, loadScript, LIB, zipAndDownload,
     cssVar, setupTransformers, stats, track, hasAI, ai, imageBlock, localAI, anyAI, log, THEMES, setTheme, money, num, icon,
     lang, L, locale, setLang, layout, saveLayout, buildNav, tr: s => s, // tr lo reemplaza i18n.js

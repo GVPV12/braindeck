@@ -143,7 +143,7 @@
       $('#sbFetch', body).onclick = async () => {
         try {
           const r = await fetch(BD.ytdlp.urlsOf(o.link)[0]); if (!r.ok) throw 0;
-          setFile(new File([await r.blob()], decodeURIComponent(new URL(o.link).pathname.split('/').pop()) || 'media'));
+          setFile(new File([await r.blob()], BD.decode(new URL(o.link).pathname.split('/').pop()) || 'media'));
         } catch { toast(L('Ese servidor no deja leer el archivo desde otra web. Descárgalo y suéltalo aquí.', 'That server doesn\'t allow reading the file from another site. Download it and drop it here.'), 'bad'); }
       };
 

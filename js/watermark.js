@@ -1,7 +1,7 @@
 'use strict';
 /* BWM web: marcas de agua en lote + metadatos de autor y señal "no-AI" (XMP / EXIF / PNG iTXt) */
 (() => {
-  const { $, $$, esc, win, store, settings, toast, loadImage, canvasBlob, baseName, num } = BD;
+  const { $, esc, win, store, settings, toast, loadImage, canvasBlob, baseName, num } = BD;
   const enc = new TextEncoder();
 
   // ---------- metadatos ----------

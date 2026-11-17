@@ -1,7 +1,7 @@
 'use strict';
 /* Notas rápidas: un cuaderno de anillas estilo HyperCard. Se guarda solo mientras escribes. */
 (() => {
-  const { $, $$, esc, win, store, toast, uid, download, L } = BD;
+  const { $, esc, win, store, toast, uid, download, L } = BD;
   const TABS = () => [['all', L('Todas', 'All')], ['ideas', 'Ideas'], ['tareas', L('Tareas', 'To-do')], ['estudio', L('Estudio', 'Study')], ['personal', 'Personal'], ['otros', L('Otros', 'Other')]];
   // Una sola vez: si ya tenías un orden guardado, Notas rápidas pasa al primer lugar de Estudio
   if (!store.get('qnotes:first', false)) {

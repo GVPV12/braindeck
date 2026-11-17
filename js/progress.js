@@ -2,7 +2,7 @@
 /* Progress Engine: lista de temas, libros o videos → plan de estudio y de evaluación con calendario a la hora exacta (.ics).
    También guarda resultados de tests y el repaso espaciado (Leitner) que usa Libro → Test. */
 (() => {
-  const { $, $$, esc, win, store, toast, uid, today, num, L } = BD;
+  const { $, esc, win, store, toast, uid, today, num, L } = BD;
   const BOX_DAYS = [0, 1, 3, 7, 14, 30];
   const addDays = (n, d = new Date()) => { const x = new Date(d); x.setDate(x.getDate() + n); return today(x); };
   const dateOf = s => new Date(s + 'T12:00');
@@ -245,7 +245,7 @@
               <h3>${L('Calendario', 'Calendar')}</h3>
               <div class="grid g2">
                 <label class="field"><span>${L('Empieza el', 'Starts on')}</span><input type="date" id="gStart" value="${o.start}"></label>
-                <label class="field"><span>${L('Hora de inicio', 'Start time')}</span><input type="time" id="gTime" value="${o.time}"></label>
+                <label class="field"><span>${L('Hora de inicio', 'Start time')}</span><input type="time" id="gTime" value="${esc(o.time)}"></label>
                 <label class="field"><span>${L('Minutos de estudio por día', 'Study minutes per day')}</span><input type="number" id="gPerDay" min="15" step="5" value="${o.perDay}"></label>
                 <label class="field"><span>${L('Bloque de estudio (min)', 'Study block (min)')}</span><input type="number" id="gBlock" min="10" step="5" value="${o.block}"></label>
                 <label class="field"><span>${L('Descanso entre bloques (min)', 'Break between blocks (min)')}</span><input type="number" id="gPause" min="0" step="5" value="${o.pause}"></label>

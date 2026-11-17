@@ -73,6 +73,23 @@ test('el buscador de atajos encuentra resultados', async ({ page }) => {
   await expect(page.locator('.sc-row').first()).toBeVisible();
 });
 
+test('los enlaces compartidos no inyectan HTML y los rotos no rompen la página', async ({ page }) => {
+  const errors = watch(page);
+  const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+  const evil = '<img src=x id=pwned>';
+  await page.goto('/#/reto/share/' + b64({ n: evil, p: [evil, 'día 2'], s: '2026-01-01', t: evil }));
+  await expect(page.locator('.reto-grid')).toBeVisible();
+  await expect(page.locator('#pwned')).toHaveCount(0);
+  await page.goto('/#/test/share/' + b64({ t: evil, q: [{ q: evil, answer: 'a', options: ['a', evil] }] }));
+  await expect(page.locator('.q-text')).toBeVisible();
+  await expect(page.locator('#pwned')).toHaveCount(0);
+  for (const bad of ['/#/reto/share/' + b64({ n: 'x', p: 'no-es-lista' }), '/#/test/share/' + b64({ t: 'x', q: [{ q: 1 }] }), '/#/test/share/%%%']) {
+    await page.goto(bad);
+    await expect(page.locator('.win h1')).toContainText(/Enlace roto|Broken link/);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('la bolsa tiene 50 items válidos en páginas de 16 y la guía los explica', async ({ page }) => {
   await page.goto('/');
   const check = await page.evaluate(() => {

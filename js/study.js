@@ -39,7 +39,7 @@
     const chapters = [];
     for (const ref of opf.querySelectorAll('spine > itemref')) {
       const href = manifest[ref.getAttribute('idref')]; if (!href) continue;
-      const f = zip.file(decodeURIComponent(dir + href)); if (!f) continue;
+      const f = zip.file(BD.decode(dir + href)); if (!f) continue;
       const doc = dp.parseFromString(await f.async('text'), 'text/html');
       const text = (doc.body?.innerText || doc.body?.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
       if (text.split(/\s+/).length < 80) continue;
@@ -199,8 +199,13 @@ Devuelve SOLO un array JSON: [{"type":"mc|tf|fill","q":"pregunta","options":["..
   BD.route('/test/share/:data', {
     title: 'Test compartido', render(view, { data }) {
       let d;
-      try { d = JSON.parse(unb64url(data)); } catch { win(view, { title: 'Enlace roto' }).innerHTML = '<p class="muted">El enlace del test está incompleto.</p>'; return; }
-      playDeck(view, { title: d.t, questions: d.q }, '#/');
+      try { d = JSON.parse(unb64url(data)); } catch { d = null; }
+      // El enlace lo puede escribir cualquiera: solo se aceptan preguntas con la forma esperada
+      const s = x => typeof x === 'string';
+      const qs = d && Array.isArray(d.q) ? d.q.filter(q => q && s(q.q) && s(q.answer) && (q.type === 'fill' || (Array.isArray(q.options) && q.options.length && q.options.every(s))))
+        .slice(0, 500).map(q => ({ type: q.type === 'fill' || q.type === 'tf' ? q.type : 'mc', q: q.q, answer: q.answer, options: q.type === 'fill' ? undefined : q.options, explain: s(q.explain) ? q.explain : '' })) : [];
+      if (!qs.length) { win(view, { title: BD.L('Enlace roto', 'Broken link') }).innerHTML = `<p class="muted">${BD.L('El enlace del test está incompleto.', 'The test link is incomplete.')}</p>`; return; }
+      playDeck(view, { title: s(d.t) ? d.t.slice(0, 120) : 'Test', questions: qs }, '#/');
     },
   });
   BD.route('/test/repaso', {
@@ -323,7 +328,7 @@ Devuelve SOLO un array JSON: [{"type":"mc|tf|fill","q":"pregunta","options":["..
           <div class="row">
             <div style="flex:1;min-width:0"><b>${esc(d.title)}</b><div class="muted small">${d.questions.length} preguntas${d.best != null ? ` · mejor ${d.best}%` : ''}</div></div>
             <a class="btn primary sm" href="#/test/deck/${d.id}">Jugar</a>
-            <button class="icon-btn" data-share="${d.id}" title="Copiar enlace para compartir">🔗</button>
+            <button type="button" class="icon-btn" data-share="${d.id}" title="${BD.L('Copiar enlace para compartir', 'Copy link to share')}" aria-label="${BD.L('Copiar enlace', 'Copy link')}">${BD.icon('link')}</button>
             <button class="icon-btn" data-del="${d.id}" title="Borrar">🗑</button>
           </div>`).join('') : '<p class="muted small">Aún no tienes tests.</p>';
       }
