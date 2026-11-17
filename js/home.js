@@ -193,7 +193,7 @@
         <div class="theme-pick" id="themes">
           ${[['paper', L('Paper (predeterminado)', 'Paper (default)'), L('Papel cuadriculado, ventanas retro en blanco y negro', 'Grid paper, black & white retro windows')], ['neo', 'Neo pixel', L('Neobrutalista, bordes gruesos, píxel', 'Neobrutalist, thick borders, pixel')], ['cosmos', 'Cosmos', L('Glass oscuro, orbes y brillo neón', 'Dark glass, orbs and neon glow')], ['frost', 'Frost', L('Foto desenfocada, minimal, tipografía bold', 'Blurred photo, minimal, bold type')]].map(([id, n, d]) => `
             <button class="theme-opt ${s.theme === id ? 'on' : ''}" data-t="${id}">
-              <div class="prev ${id}"></div><span class="t">${n}</span><span class="muted small" style="padding:0 6px">${d}</span>
+              <div class="prev ${id}"></div><span class="t">${n}</span><span class="muted small">${d}</span>
             </button>`).join('')}
         </div>
         <hr class="sep">

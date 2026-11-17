@@ -55,7 +55,112 @@
     { id: 'crown', name: L('Corona', 'Crown'), req: L('Llega al nivel 10', 'Reach level 10'), ok: c => c.level >= 10,
       p: { k: K, y: '#ffd400', r: '#ff4d5e' },
       r: ['............', 'k....kk....k', 'kk..kyyk..kk', 'kyk.kyyk.kyk', 'kyykyyyykyyk', 'kyyyyryyyyyk', 'kyyyrrryyyyk', 'kyyyyryyyyyk', 'kkkkkkkkkkkk', 'kyyyyyyyyyyk', 'kkkkkkkkkkkk', '............'] },
+    // ----- herramientas concretas -----
+    { id: 'scroll', name: L('Pergamino', 'Scroll'), req: L('Guarda 3 notas desde capturas', 'Save 3 notes from screenshots'), ok: c => c.notesN >= 3,
+      p: { k: K, t: '#f4d9a8', b: '#c9a36b' },
+      r: ['............', '..kkkkkkkk..', '.kbttttttbk.', '..kttttttk..', '..ktkkkktk..', '..kttttttk..', '..ktkkkttk..', '..kttttttk..', '..ktkkkktk..', '.kbttttttbk.', '..kkkkkkkk..', '............'] },
+    { id: 'notebook', name: L('Cuaderno', 'Notebook'), req: L('Escribe 25 notas rápidas', 'Write 25 quick notes'), ok: c => c.qnotes >= 25,
+      p: { k: K, w: W, p: '#ff8fc4', s: '#c3cad8' },
+      r: ['............', '.kkkkkkkkk..', 'kskpppppppk.', '.kkpppppppk.', 'kskpwwwwwpk.', '.kkpppppppk.', 'kskpppppppk.', '.kkpppppppk.', 'kskpppppppk.', '.kkpppppppk.', '..kkkkkkkk..', '............'] },
+    { id: 'calendar', name: L('Calendario', 'Calendar'), req: L('Crea un plan de estudios', 'Create a study plan'), ok: c => c.plansN >= 1,
+      p: { k: K, w: W, r: '#ff4d5e' },
+      r: ['...k....k...', '.kkkkkkkkkk.', '.krrrrrrrrk.', '.krrrrrrrrk.', '.kkkkkkkkkk.', '.kwwwwwwwwk.', '.kwkwkwkwwk.', '.kwwwwwwwwk.', '.kwkwkwkwwk.', '.kwwwwwwwwk.', '.kkkkkkkkkk.', '............'] },
+    { id: 'hourglass', name: L('Reloj de arena', 'Hourglass'), req: L('Completa 10 sesiones de un plan', 'Complete 10 plan sessions'), ok: c => c.plansDone >= 10,
+      p: { k: K, w: W, t: '#a0663a', y: '#ffd400' },
+      r: ['.kkkkkkkkkk.', '.tttttttttt.', '..kwwwwwwk..', '..kyyyyyyk..', '...kyyyyk...', '....kyyk....', '....kwyk....', '...kwwywk...', '..kwwwywwk..', '..kyyyyyyk..', '.tttttttttt.', '.kkkkkkkkkk.'] },
+    { id: 'medal', name: L('Medalla', 'Medal'), req: L('Completa 30 sesiones de un plan', 'Complete 30 plan sessions'), ok: c => c.plansDone >= 30,
+      p: { k: K, r: '#ff4d5e', b: '#2f8cff', y: '#ffd400', o: '#f2a900' },
+      r: ['..kkk..kkk..', '..krk..kbk..', '...krkkbk...', '....krbk....', '....kkkk....', '...kyyyyk...', '..kyyooyyk..', '..kyoyyoyk..', '..kyyooyyk..', '...kyyyyk...', '....kkkk....', '............'] },
+    { id: 'gradcap', name: L('Birrete', 'Grad cap'), req: L('Termina un plan de estudios completo', 'Finish a whole study plan'), ok: c => c.planComplete >= 1,
+      p: { k: K, d: '#3a3550', y: '#ffd400' },
+      r: ['............', '.....kk.....', '...kkddkk...', '.kkddddddkk.', 'kddddddddddk', '.kkddddddkk.', '..kddddddky.', '..kddddddky.', '..kkkkkkkky.', '..........y.', '.........yy.', '............'] },
+    { id: 'mic', name: L('Micrófono', 'Microphone'), req: L('Grábate 3 veces en el coach de inglés', 'Record yourself 3 times in the English coach'), ok: c => c.speakN >= 3,
+      p: { k: K, s: '#c3cad8', p: '#8b6cff' },
+      r: ['....kkkk....', '...kssssk...', '...kssssk...', '...kssssk...', '.k.kssssk.k.', '.k..kkkk..k.', '..k......k..', '...kkkkkk...', '.....kk.....', '.....kk.....', '...kppppk...', '...kkkkkk...'] },
+    { id: 'dumbbell', name: L('Pesa', 'Dumbbell'), req: L('Haz 10 días de retos', 'Do 10 challenge days'), ok: c => c.retoDays >= 10,
+      p: { k: K, s: '#c3cad8', d: '#5a5f73' },
+      r: ['............', '............', '............', '.kk......kk.', 'kddk....kddk', 'kddkkkkkkddk', 'kddssssssddk', 'kddkkkkkkddk', 'kddk....kddk', '.kk......kk.', '............', '............'] },
+    { id: 'music', name: L('Notas musicales', 'Music notes'), req: L('5 horas de radio', '5 hours of radio'), ok: c => c.radioMin >= 300,
+      p: { k: K, p: '#8b6cff' },
+      r: ['............', '....kkkkkkk.', '....kkkkkkk.', '....k.....k.', '....k.....k.', '....k.....k.', '..kkk...kkk.', '.kppk..kppk.', '.kppk..kppk.', '..kk....kk..', '............', '............'] },
+    { id: 'palette', name: L('Paleta de pintor', 'Painter palette'), req: L('Guarda 3 paletas', 'Save 3 palettes'), ok: c => c.pal >= 3,
+      p: { k: K, t: '#f4c27a', r: '#ff4d5e', b: '#2f8cff', g: '#2ec27e', y: '#ffd400' },
+      r: ['............', '...kkkkk....', '..kttttttk..', '.ktrttbttk..', '.kttttttttk.', '.ktgttkkttk.', '.ktttk..ttk.', '.ktyttkkttk.', '..kttttttk..', '...kkkkkk...', '............', '............'] },
+    { id: 'bulb', name: L('Bombilla', 'Light bulb'), req: L('Guarda 3 ideas para crear', 'Save 3 creative ideas'), ok: c => c.ideasSaved >= 3,
+      p: { k: K, w: W, y: '#ffe066', s: '#c3cad8' },
+      r: ['....kkkk....', '...kyyyyk...', '..kywyyyyk..', '..kwyyyyyk..', '..kyyyyyyk..', '..kyyyyyyk..', '...kyyyyk...', '....kyyk....', '....kssk....', '....kkkk....', '....kssk....', '.....kk.....'] },
+    { id: 'cloud', name: L('Nube', 'Cloud'), req: L('Guarda 3 frases de Art Unblock', 'Save 3 Art Unblock prompts'), ok: c => c.unblockSaved >= 3,
+      p: { k: K, w: W, b: '#bfe3ff' },
+      r: ['............', '............', '....kkk.....', '...kwwwk....', '.kkkwwwwkk..', 'kwwwwwwwwwk.', 'kwwwwwwwwwwk', 'kbwwwwwwwwbk', 'kbbbbbbbbbbk', '.kkkkkkkkkk.', '............', '............'] },
+    { id: 'stopwatch', name: L('Cronómetro', 'Stopwatch'), req: L('Haz 3 sesiones de gesture drawing', 'Do 3 gesture drawing sessions'), ok: c => c.u('/gesture') >= 3,
+      p: { k: K, w: W, r: '#ff4d5e' },
+      r: ['....kkkk....', '.....kk.....', '...kkkkkk...', '..kwwwwwwk..', '.kwwwkwwwwk.', '.kwwwkwwwwk.', '.kwwwkrrwwk.', '.kwwwwwwwwk.', '.kwwwwwwwwk.', '..kwwwwwwk..', '...kkkkkk...', '............'] },
+    { id: 'camera', name: L('Cámara', 'Camera'), req: L('Edita imágenes 5 veces (convertir, comprimir o quitar fondo)', 'Edit images 5 times (convert, compress or remove background)'), ok: c => c.u('/convertir') + c.u('/comprimir') + c.u('/quitar-fondo') >= 5,
+      p: { k: K, w: W, s: '#c3cad8', b: '#3ee6ff' },
+      r: ['............', '....kkk.....', '.kkkkkkkkkk.', 'kssssssssssk', 'ksssskkssssk', 'ksskbbbbkssk', 'ksskbwbbkssk', 'ksskbbbbkssk', 'ksssskkssssk', 'kssssssssssk', '.kkkkkkkkkk.', '............'] },
+    { id: 'shield', name: L('Escudo', 'Shield'), req: L('Protege tus imágenes con marca de agua 3 veces', 'Protect your images with a watermark 3 times'), ok: c => c.u('/marca-agua') >= 3,
+      p: { k: K, w: W, b: '#2f8cff' },
+      r: ['.kkkkkkkkkk.', '.kbbbbwwwwk.', '.kbbbbwwwwk.', '.kbbbbwwwwk.', '.kwwwwbbbbk.', '.kwwwwbbbbk.', '..kwwwbbbk..', '..kwwwbbbk..', '...kwwbbk...', '....kwbk....', '.....kk.....', '............'] },
+    { id: 'film', name: L('Película', 'Film'), req: L('Usa las herramientas de video 3 veces', 'Use the video tools 3 times'), ok: c => c.u('/descargar-video') + c.u('/subtitulos') + c.u('/pinterest-instagram') >= 3,
+      p: { k: K, w: W, s: '#c3cad8' },
+      r: ['............', 'kkkkkkkkkkkk', 'kwkwkwkwkwkk', 'kkkkkkkkkkkk', 'kssssssssssk', 'kssskksssssk', 'kssskkkssssk', 'kssskksssssk', 'kssssssssssk', 'kkkkkkkkkkkk', 'kwkwkwkwkwkk', 'kkkkkkkkkkkk'] },
+    { id: 'pdf', name: L('Hoja PDF', 'PDF page'), req: L('Une o edita PDFs 3 veces', 'Merge or edit PDFs 3 times'), ok: c => c.u('/unir-pdf') + c.u('/editar-pdf') >= 3,
+      p: { k: K, w: W, r: '#ff4d5e' },
+      r: ['..kkkkkk....', '..kwwwwkk...', '..kwwwwkwk..', '..kwwwwkkkk.', '..kwwwwwwwk.', '.krrrrrrrrk.', '.krwrwrwrrk.', '.krrrrrrrrk.', '..kwwwwwwwk.', '..kwkkkkwwk.', '..kwwwwwwwk.', '..kkkkkkkkk.'] },
+    { id: 'qr', name: L('Código QR', 'QR code'), req: L('Crea 3 códigos QR', 'Make 3 QR codes'), ok: c => c.u('/qr') >= 3,
+      p: { k: K, w: W },
+      r: ['............', '.kkkk..kkkk.', '.kwwk..kwwk.', '.kwwk..kwwk.', '.kkkk.kkkkk.', '......k.k...', '.k.kk.kk.kk.', '.kkkk..k.k..', '.kwwk.kk..k.', '.kwwk..kk.k.', '.kkkk.k.kk..', '............'] },
+    { id: 'magnifier', name: L('Lupa', 'Magnifier'), req: L('Busca atajos 5 veces', 'Search shortcuts 5 times'), ok: c => c.u('/atajos') >= 5,
+      p: { k: K, w: W, b: '#9ee7ff', t: '#a0663a' },
+      r: ['............', '...kkkk.....', '..kbbbbk....', '.kbwbbbbk...', '.kbbbbbbk...', '.kbbbbbbk...', '..kbbbbk....', '...kkkkkk...', '.......ktk..', '........ktk.', '.........kk.', '............'] },
+    { id: 'piggy', name: L('Cerdito', 'Piggy bank'), req: L('Crea un plan de ahorro', 'Create a savings plan'), ok: c => c.savingsN >= 1,
+      p: { k: K, p: '#ff8fb1', d: '#e0607e' },
+      r: ['............', '....kkkk....', '..kkppppkk..', '.kppppppppk.', 'kppkppppppk.', 'kppppppppddk', 'kppppppppddk', '.kppppppppk.', '..kpkkkkpk..', '..kk....kk..', '............', '............'] },
+    { id: 'calculator', name: L('Calculadora', 'Calculator'), req: L('Calcula 3 comisiones', 'Calculate 3 commissions'), ok: c => c.u('/comision') >= 3,
+      p: { k: K, w: W, s: '#c3cad8', g: '#9be7a0' },
+      r: ['..kkkkkkkk..', '..kssssssk..', '..kggggggk..', '..kssssssk..', '..kwswswsk..', '..kssssssk..', '..kwswswsk..', '..kssssssk..', '..kwswswsk..', '..kssssssk..', '..kkkkkkkk..', '............'] },
+    { id: 'dice', name: L('Dado', 'Die'), req: L('Juega 5 veces a los minijuegos', 'Play the minigames 5 times'), ok: c => c.u('/juegos') >= 5,
+      p: { k: K, w: W },
+      r: ['............', '.kkkkkkkkkk.', '.kwwwwwwwwk.', '.kwkkwwwwwk.', '.kwkkwwwwwk.', '.kwwwkkwwwk.', '.kwwwkkwwwk.', '.kwwwwwkkwk.', '.kwwwwwkkwk.', '.kwwwwwwwwk.', '.kkkkkkkkkk.', '............'] },
+    { id: 'joystick', name: 'Joystick', req: L('Saca 8/10 en el quiz', 'Score 8/10 in the quiz'), ok: c => c.quizBest >= 8,
+      p: { k: K, r: '#ff4d5e', d: '#3a3550' },
+      r: ['....kkk.....', '...krrrk....', '...krrrk....', '....kkk.....', '.....k......', '.....k......', '..kkkkkkkk..', '.kddddddrdk.', 'kddddddddddk', 'kddddddddddk', '.kkkkkkkkkk.', '............'] },
+    { id: 'globe', name: L('Globo terráqueo', 'Globe'), req: L('Saca 8/10 en el quiz de países', 'Score 8/10 in the country quiz'), ok: c => c.countriesBest >= 8,
+      p: { k: K, b: '#2f8cff', g: '#2ec27e' },
+      r: ['............', '...kkkkkk...', '..kbbggbbk..', '.kbggggbbbk.', '.kbbgggbbbk.', '.kbbbgbbggk.', '.kbbbbbgggk.', '.kbbbbbbggk.', '..kbbbbbbk..', '...kkkkkk...', '............', '............'] },
+    // ----- hitos generales -----
+    { id: 'heart', name: L('Corazón', 'Heart'), req: L('Estudia 10 días', 'Study on 10 days'), ok: c => c.studyDays >= 10,
+      p: { k: K, w: W, r: '#ff5f9e' },
+      r: ['............', '.kkkk..kkkk.', 'krrrrkkrrrrk', 'krwrrrrrrrrk', 'krrrrrrrrrrk', 'krrrrrrrrrrk', '.krrrrrrrrk.', '..krrrrrrk..', '...krrrrk...', '....krrk....', '.....kk.....', '............'] },
+    { id: 'map', name: L('Mapa', 'Map'), req: L('Prueba 20 herramientas distintas', 'Try 20 different tools'), ok: c => c.distinct >= 20,
+      p: { k: K, t: '#f4d9a8', r: '#ff4d5e', b: '#2f8cff' },
+      r: ['............', '.kkkkkkkkkk.', '.kttttttttk.', '.ktbbtttttk.', '.ktbttttrtk.', '.kttbttrrrk.', '.ktttbttrtk.', '.kttttbbttk.', '.kttttttbtk.', '.kttttttttk.', '.kkkkkkkkkk.', '............'] },
+    { id: 'backpack', name: L('Mochila', 'Backpack'), req: L('Usa herramientas 100 veces', 'Use tools 100 times'), ok: c => c.total >= 100,
+      p: { k: K, g: '#2ec27e', d: '#1f8f5a', y: '#ffd400' },
+      r: ['....kkkk....', '...k....k...', '..kkkkkkkk..', '.kggggggggk.', '.kggggggggk.', '.kddddddddk.', '.kgkkkkkkgk.', '.kgkggggkgk.', '.kgkgyygkgk.', '.kgkkkkkkgk.', '.kkkkkkkkkk.', '............'] },
+    { id: 'rocket', name: L('Cohete', 'Rocket'), req: L('Usa herramientas 250 veces', 'Use tools 250 times'), ok: c => c.total >= 250,
+      p: { k: K, w: W, r: '#ff4d5e', b: '#3ee6ff', o: '#ff7b00' },
+      r: ['.....kk.....', '....krrk....', '...kwwwwk...', '...kwbbwk...', '...kwbbwk...', '...kwwwwk...', '..kkwwwwkk..', '.krkwwwwkrk.', '.krkkkkkkrk.', '.kk.kook.kk.', '.....oo.....', '.....kk.....'] },
+    { id: 'sun', name: L('Sol', 'Sun'), req: L('Racha de 14 días', '14-day streak'), ok: c => c.streak >= 14,
+      p: { k: K, y: '#ffd400', o: '#ff7b00' },
+      r: ['.....o......', '.o...o...o..', '..o.kkkk.o..', '...kyyyyk...', '..kyyyyyyk..', 'ookyyyyyykoo', '..kyyyyyyk..', '...kyyyyk...', '..o.kkkk.o..', '.o...o...o..', '.....o......', '............'] },
+    { id: 'rainbow', name: L('Arcoíris', 'Rainbow'), req: L('Racha de 30 días', '30-day streak'), ok: c => c.streak >= 30,
+      p: { w: W, r: '#ff4d5e', o: '#ff7b00', y: '#ffd400', g: '#2ec27e', b: '#2f8cff' },
+      r: ['............', '............', '...rrrrrr...', '..roooooor..', '.royyyyyyor.', 'roygbbbbgyor', 'roygb..bgyor', 'roygb..bgyor', 'wwwgb..bgwww', 'wwww....wwww', '............', '............'] },
+    { id: 'moon', name: L('Luna', 'Moon'), req: L('Abre BrainDeck 30 días distintos', 'Open BrainDeck on 30 different days'), ok: c => c.daysActive >= 30,
+      p: { k: K, y: '#ffe066' },
+      r: ['............', '....kkkk....', '..kkyyk.....', '.kyyyk......', '.kyyk.......', 'kyyyk.......', 'kyyyk.......', 'kyyyyk......', '.kyyyykkkk..', '.kkyyyyyyk..', '...kkkkkk...', '............'] },
+    { id: 'diamond', name: L('Diamante', 'Diamond'), req: L('Llega al nivel 15', 'Reach level 15'), ok: c => c.level >= 15,
+      p: { k: K, w: W, b: '#9ee7ff', d: '#3ec4ff' },
+      r: ['............', '............', '...kkkkkk...', '..kwbbbbdk..', '.kwbbbbbddk.', 'kkkkkkkkkkkk', '.kbbbbbbddk.', '..kbbbbddk..', '...kbbddk...', '....kbdk....', '.....kk.....', '............'] },
+    { id: 'key', name: L('Llave', 'Key'), req: L('Consigue 10 items', 'Collect 10 items'), ok: c => c.itemsGot >= 10,
+      p: { k: K, y: '#ffd400' },
+      r: ['............', '..kkkk......', '.kyyyyk.....', 'kyykkyyk....', 'kyk..kykkkkk', 'kyk..kyyyyyk', 'kyykkyykkkyk', '.kyyyyk..kyk', '..kkkk...kk.', '............', '............', '............'] },
+    { id: 'chest', name: L('Cofre', 'Chest'), req: L('Consigue 25 items', 'Collect 25 items'), ok: c => c.itemsGot >= 25,
+      p: { k: K, t: '#a0663a', d: '#7a4a2a', y: '#ffd400' },
+      r: ['............', '..kkkkkkkk..', '.kttttttttk.', 'kttttttttttk', 'kddddddddddk', 'kkkkkyykkkkk', 'ktttkyyktttk', 'kttttkkttttk', 'kttttttttttk', 'kddddddddddk', 'kkkkkkkkkkkk', '............'] },
   ];
+  BD.items = ITEMS; // para las pruebas y la guía
   const HEART = ['.kk.kk.', 'kppkppk', 'kpppppk', '.kpppk.', '..kpk..', '...k...'];
   const heart = on => BD.pixel(HEART, { k: 'var(--heart-line)', p: on ? '#ff5f9e' : 'var(--heart-empty)' }, 'px heart');
 
@@ -77,6 +182,11 @@
       radioPlays: s.radio.plays || 0, radioMin: s.radio.min || 0,
       retoDays: chal.reduce((a, ch) => a + (ch.done || []).length, 0), retoDone: chal.filter(ch => ch.prompts && ch.done && ch.done.length >= ch.prompts.length).length,
       decisions: store.get('decisions', []).length,
+      // contadores para los items de cada herramienta
+      u: p => s.uses[p] || 0, notesN: arr('notes'), pal: arr('pal:saved'), ideasSaved: arr('ideas:saved'), unblockSaved: arr('unblock:saved'),
+      speakN: arr('speak:history'), savingsN: arr('savings:plans'), plansN: plans.length,
+      planComplete: plans.filter(p => (p.sessions || []).length && p.sessions.every(x => x.done)).length,
+      quizBest: store.get('games:quizBest', 0), countriesBest: store.get('games:countriesBest', 0), itemsGot: (s.items || []).length,
     };
     c.xp = Math.round(total * 2 + c.studyDays * 10 + c.plansDone * 5 + c.tests * 8 + c.retoDays * 5 + c.qnotes * 2 + c.radioMin / 2 + c.decisions * 2);
     // nivel n necesita 60·n XP más que el anterior
@@ -134,12 +244,30 @@
     '/comprimir': () => L('Minimalista', 'Minimalist'), '/atajos': () => L('Ninja del teclado', 'Keyboard ninja'),
   };
 
+  // ---------- stats: [sigla, nombre, qué cuenta, valor, puntos por bloque] (la guía usa la misma lista) ----------
+  const STATS = c => [
+    ['FOC', L('Enfoque', 'Focus'), L('Cada vez que abres una herramienta de estudio, más 2 por cada día que estudias', 'Each time you open a study tool, plus 2 for every day you study'), (c.cat.estudio || 0) + c.studyDays * 2, 5],
+    ['INT', L('Intelecto', 'Intellect'), L('Tests terminados en Libro → test', 'Tests finished in Book → test'), c.tests, 2],
+    ['DIS', L('Disciplina', 'Discipline'), L('Sesiones de tus planes de estudio marcadas como hechas', 'Study plan sessions marked as done'), c.plansDone, 3],
+    ['MEM', L('Memoria', 'Memory'), L('Notas guardadas: notas rápidas más notas desde capturas', 'Saved notes: quick notes plus notes from screenshots'), c.qnotes + c.notesN, 5],
+    ['ART', L('Arte', 'Art'), L('Usos de herramientas de imágenes y arte', 'Uses of image and art tools'), c.cat.creativo || 0, 4],
+    ['UTL', L('Utilidades', 'Utilities'), L('Usos de utilidades: PDF, video, QR, atajos…', 'Uses of utilities: PDF, video, QR, shortcuts…'), c.cat.media || 0, 4],
+    ['ORO', L('Dinero', 'Money'), L('Usos de la calculadora de comisión y el plan de ahorro', 'Uses of the commission calculator and savings plan'), c.cat.dinero || 0, 3],
+    ['ZEN', L('Calma', 'Calm'), L('Minutos escuchando la radio para estudiar', 'Minutes listening to the study radio'), c.radioMin, 30],
+    ['CON', L('Constancia', 'Consistency'), L('Días distintos en los que abriste BrainDeck', 'Different days you opened BrainDeck'), c.daysActive, 3],
+  ];
+
   // ---------- piezas ----------
-  const dw = (cls, title, body, extra = '') => `
+  // help: ruta de la guía que abre el botón «?» de la ventana
+  const dw = (cls, title, body, extra = '', help = '') => `
     <section class="dw ${cls}" ${extra}>
-      <div class="dw-bar"><span>${title}</span><i class="dw-dots" aria-hidden="true"><b></b><b></b></i></div>
+      <div class="dw-bar"><span>${title}</span>${help ? `<a class="dw-help" href="#/guia?s=${help}" title="${L('¿Qué significa?', 'What does it mean?')}" aria-label="${L('Ayuda: qué significa cada cosa', 'Help: what each thing means')}">?</a>` : ''}<i class="dw-dots" aria-hidden="true"><b></b><b></b></i></div>
       <div class="dw-body">${body}</div>
     </section>`;
+  const slot = (it, got, fresh) => got.has(it.id)
+    ? `<div class="bag-slot on ${fresh.includes(it) ? 'new' : ''}" data-tip="${esc(it.name)} — ${esc(it.req)}">${BD.pixel(it.r, it.p)}</div>`
+    : `<div class="bag-slot" data-tip="??? — ${esc(it.req)}">${BD.pixel(it.r, Object.fromEntries(Object.keys(it.p).map(k => [k, 'var(--lock)'])))}<em>?</em></div>`;
+  const PER_PAGE = 16;
   const blocks = (v, step) => { const f = Math.min(10, Math.ceil(v / step)); return `<span class="seg10">${Array.from({ length: 10 }, (_, i) => `<i class="${i < f ? 'on' : ''}"></i>`).join('')}</span>`; };
   // planes "sin horas fijas": solo el día (y la duración), nunca una hora
   const fmtNext = nx => nx ? new Date(nx.date + 'T12:00').toLocaleDateString(BD.locale(), { weekday: 'short', day: 'numeric' }) + ' · ' +
@@ -166,6 +294,66 @@
         <span class="dev-label">${esc(t.short || t.title)}</span></a>`;
     return main.map(app).join('') + extra.map(app).join('');
   }
+
+  // ---------- Guía: qué significa cada stat, recompensa e item (botón «?» de STATS e ITEM BAG) ----------
+  BD.route('/guia', {
+    title: 'Guía',
+    render(view) {
+      const c = numbers(), got = new Set(c.s.items || []);
+      const body = BD.win(view, { title: L('Guía de stats e items', 'Stats & items guide'), sub: L('Qué significa cada cosa del inicio y cómo se consigue. Nada se pierde: lo que ganas es tuyo aunque cortes la racha.', 'What everything on the home screen means and how to get it. Nothing is lost: what you earn stays yours even if you break your streak.') });
+      const XP = [
+        [L('Abrir una herramienta', 'Opening a tool'), '+2'], [L('Cada día con estudio', 'Each day you study'), '+10'],
+        [L('Terminar un test', 'Finishing a test'), '+8'], [L('Sesión de plan hecha', 'Plan session done'), '+5'],
+        [L('Día de reto cumplido', 'Challenge day done'), '+5'], [L('Nota rápida', 'Quick note'), '+2'],
+        [L('Decisión guardada', 'Saved decision'), '+2'], [L('Cada 2 min de radio', 'Every 2 min of radio'), '+1'],
+      ];
+      body.innerHTML = `<div class="guide">
+        <nav class="guide-nav" aria-label="${L('Secciones', 'Sections')}">
+          <a href="#/guia?s=stats">Stats</a><a href="#/guia?s=rewards">${L('Recompensas', 'Rewards')}</a><a href="#/guia?s=items">Items · ${got.size}/${ITEMS.length}</a>
+        </nav>
+
+        <section class="guide-sec" id="g-stats">
+          <h3>Stats</h3>
+          <p class="muted">${L('Cada barra tiene 10 bloques. Se llena un bloque cada cierto número de puntos; el número de la derecha es tu valor real.', 'Each bar has 10 blocks. One block fills every few points; the number on the right is your real value.')}</p>
+          <div class="guide-list">${STATS(c).map(([k, name, what, v, st]) => `
+            <div class="guide-row">
+              <b class="guide-abbr">${k}</b>
+              <div class="guide-txt"><b>${esc(name)}</b><span>${esc(what)}</span><small>${L(`1 bloque = ${st} puntos`, `1 block = ${st} points`)}</small></div>
+              <span class="guide-val">${v}</span>
+            </div>`).join('')}</div>
+        </section>
+
+        <section class="guide-sec" id="g-rewards">
+          <h3>${L('Recompensas', 'Rewards')}</h3>
+          <div class="guide-cards">
+            <div class="guide-card"><h4>XP ${L('y nivel', '& level')}</h4>
+              <p>${L(`Ganas XP al usar BrainDeck. Subir del nivel n al siguiente cuesta 60 × n XP. Ahora: <b>nivel ${c.level}</b>, ${c.lvXp}/${c.lvNeed} XP.`, `You earn XP by using BrainDeck. Going from level n to the next costs 60 × n XP. Now: <b>level ${c.level}</b>, ${c.lvXp}/${c.lvNeed} XP.`)}</p>
+              <ul class="guide-xp">${XP.map(([a, b]) => `<li><span>${a}</span><b>${b}</b></li>`).join('')}</ul></div>
+            <div class="guide-card"><h4>${L('Racha (corazones)', 'Streak (hearts)')}</h4>
+              <p>${L('Días seguidos con estudio. Cada día llena un corazón, hasta 10. Si un día no estudias la racha vuelve a empezar, pero tu XP, nivel e items se quedan.', 'Days in a row with study. Each day fills a heart, up to 10. If you skip a day the streak restarts, but your XP, level and items stay.')} ${L('Ahora', 'Now')}: <b>${c.streak}</b>.</p></div>
+            <div class="guide-card"><h4>${L('Ocupaciones', 'Occupations')}</h4>
+              <p>${L('Tus 3 herramientas más usadas te dan un título (Escriba, Estratega, DJ…). Su nivel sube con la raíz de tus usos: 1, 4, 9, 16… usos.', 'Your 3 most used tools give you a title (Scribe, Strategist, DJ…). Their level grows with the square root of your uses: 1, 4, 9, 16… uses.')}</p></div>
+            <div class="guide-card"><h4>Items</h4>
+              <p>${L(`Hay ${ITEMS.length}. Se desbloquean solos al cumplir su condición y se guardan para siempre. Los bloqueados se ven en gris con «?».`, `There are ${ITEMS.length}. They unlock by themselves when you meet their condition and are kept forever. Locked ones show in grey with "?".`)}</p></div>
+          </div>
+        </section>
+
+        <section class="guide-sec" id="g-items">
+          <h3>Items <small class="muted">${got.size}/${ITEMS.length}</small></h3>
+          <div class="guide-items">${ITEMS.map(it => {
+            const on = got.has(it.id);
+            return `<div class="guide-item ${on ? 'on' : ''}">
+              <span class="guide-px">${BD.pixel(it.r, on ? it.p : Object.fromEntries(Object.keys(it.p).map(k => [k, 'var(--lock)'])))}</span>
+              <span class="guide-txt"><b>${on ? esc(it.name) : '???'}</b><span>${esc(it.req)}</span><small>${on ? L('Conseguido ✓', 'Unlocked ✓') : L('Bloqueado', 'Locked')}</small></span>
+            </div>`;
+          }).join('')}</div>
+        </section>
+      </div>`;
+      const sec = (location.hash.match(/[?&]s=(\w+)/) || [])[1];
+      const target = sec && body.querySelector('#g-' + sec);
+      if (target) requestAnimationFrame(() => target.scrollIntoView({ block: 'start' }));
+    },
+  });
 
   BD.route('/', {
     title: '',
@@ -217,16 +405,11 @@
               </div>`)}
             ${dw('dw-stats', 'STATS', `
               <div class="rpg">
-                ${[['FOC', L('Estudio', 'Study'), (c.cat.estudio || 0) + c.studyDays * 2, 5],
-                  ['ART', L('Arte', 'Art'), c.cat.creativo || 0, 4],
-                  ['UTL', L('Utilidades', 'Utilities'), c.cat.media || 0, 4],
-                  ['ORO', L('Dinero', 'Money'), c.cat.dinero || 0, 3],
-                  ['ZEN', L('Minutos de radio', 'Radio minutes'), c.radioMin, 30],
-                  ['CON', L('Días activos', 'Active days'), c.daysActive, 3]].map(([k, tip, v, st]) => `
-                  <div class="rpg-row" data-tip="${tip}: ${v}"><b>${k}</b>${blocks(v, st)}<span>${v}</span></div>`).join('')}
+                ${STATS(c).map(([k, name, , v, st]) => `
+                  <div class="rpg-row" data-tip="${esc(name)}: ${v}"><b>${k}</b>${blocks(v, st)}<span>${v}</span></div>`).join('')}
               </div>
               <p class="dash-tip">${BD.icon('download')}<span>${L('Tu progreso, nivel e items se guardan en este navegador. Puedes exportarlos e importarlos en',
-                'Your progress, level and items are stored in this browser. You can export and import them in')} <a href="#/ajustes">${L('Ajustes', 'Settings')} →</a></span></p>`)}
+                'Your progress, level and items are stored in this browser. You can export and import them in')} <a href="#/ajustes">${L('Ajustes', 'Settings')} →</a></span></p>`, '', 'stats')}
             ${dw('dw-data', 'DATA', `
               <div class="tiles">
                 <div class="tile"><b>${c.streak}</b><span>${L('días de racha', 'day streak')}</span></div>
@@ -237,9 +420,13 @@
                 <div class="tile wide"><b>${c.total}</b><span>${L('usos en total', 'total uses')} · ${c.distinct} ${L('apps distintas', 'different apps')}</span></div>
               </div>`)}
             ${dw('dw-bag', `ITEM BAG <small>${got.size}/${ITEMS.length}</small>`, `
-              <div class="bag">${ITEMS.map(it => got.has(it.id)
-                ? `<div class="bag-slot on ${fresh.includes(it) ? 'new' : ''}" data-tip="${esc(it.name)} — ${esc(it.req)}">${BD.pixel(it.r, it.p)}</div>`
-                : `<div class="bag-slot" data-tip="??? — ${esc(it.req)}">${BD.pixel(it.r, Object.fromEntries(Object.keys(it.p).map(k => [k, 'var(--lock)'])))}<em>?</em></div>`).join('')}</div>`)}
+              <div class="bag-car">
+                <button type="button" class="bag-arrow" id="bagPrev" aria-label="${L('Página anterior', 'Previous page')}">‹</button>
+                <div class="bag-track" id="bagTrack" tabindex="0" aria-label="${L('Items, 16 por página', 'Items, 16 per page')}">${Array.from({ length: Math.ceil(ITEMS.length / PER_PAGE) }, (_, pg) => `
+                  <div class="bag">${ITEMS.slice(pg * PER_PAGE, pg * PER_PAGE + PER_PAGE).map(it => slot(it, got, fresh)).join('')}</div>`).join('')}</div>
+                <button type="button" class="bag-arrow" id="bagNext" aria-label="${L('Página siguiente', 'Next page')}">›</button>
+              </div>
+              <div class="bag-pages" id="bagPages" aria-hidden="true">${Array.from({ length: Math.ceil(ITEMS.length / PER_PAGE) }, (_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>`, '', 'items')}
             ${dw('dw-act', L('ACTIVIDAD', 'ACTIVITY'), `${heatmap(s, c.study)}
               <p class="muted small dash-note">${L('Cada cuadro es un día. Más color = más uso (estudiar cuenta doble).', 'Each square is a day. More color = more use (studying counts double).')}</p>`)}
             ${dw('dw-top', 'TOP APPS', top.length ? `<div class="top-apps">${top.map(([t, v]) => `
@@ -281,6 +468,23 @@
         pick.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
         pick.classList.add('hidden');
       };
+
+      // ---------- carrusel de la bolsa: 16 items por página, flechas, deslizar en el móvil ----------
+      const track = view.querySelector('#bagTrack'), prev = view.querySelector('#bagPrev'), next = view.querySelector('#bagNext');
+      const dots = [...view.querySelectorAll('#bagPages i')];
+      const page = () => Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+      const syncBag = () => {
+        const p = page();
+        prev.disabled = p <= 0; next.disabled = p >= dots.length - 1;
+        dots.forEach((d, i) => d.classList.toggle('on', i === p));
+      };
+      const goPage = (p, smooth = true) => track.scrollTo({ left: p * track.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+      prev.onclick = () => goPage(page() - 1);
+      next.onclick = () => goPage(page() + 1);
+      track.onkeydown = e => { if (e.key === 'ArrowRight') { e.preventDefault(); next.click(); } if (e.key === 'ArrowLeft') { e.preventDefault(); prev.click(); } };
+      track.addEventListener('scroll', syncBag, { passive: true });
+      if (fresh.length) goPage(Math.floor(ITEMS.indexOf(fresh[0]) / PER_PAGE), false);
+      syncBag();
 
       clock(); const id = setInterval(clock, 20000);
 

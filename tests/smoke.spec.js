@@ -72,3 +72,21 @@ test('el buscador de atajos encuentra resultados', async ({ page }) => {
   await page.locator('#scQ').fill('captura');
   await expect(page.locator('.sc-row').first()).toBeVisible();
 });
+
+test('la bolsa tiene 50 items válidos en páginas de 16 y la guía los explica', async ({ page }) => {
+  await page.goto('/');
+  const check = await page.evaluate(() => {
+    const ids = BD.items.map(i => i.id);
+    const bad = BD.items.filter(it => it.r.length !== 12 || it.r.some(r => r.length !== 12) || [...it.r.join('')].some(ch => ch !== '.' && !it.p[ch])).map(i => i.id);
+    return { n: ids.length, dup: ids.length - new Set(ids).size, bad };
+  });
+  expect(check).toEqual({ n: 50, dup: 0, bad: [] });
+  await expect(page.locator('.bag')).toHaveCount(4);
+  await expect(page.locator('.bag').first().locator('.bag-slot')).toHaveCount(16);
+  await expect(page.locator('#bagPrev')).toBeDisabled();
+  await page.locator('#bagNext').click();
+  await expect(page.locator('#bagPages i').nth(1)).toHaveClass(/on/);
+  await page.locator('.dw-bag .dw-help').click();
+  await expect(page.locator('#g-items .guide-item')).toHaveCount(50);
+  await expect(page.locator('#g-stats .guide-row')).toHaveCount(9);
+});
